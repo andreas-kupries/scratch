@@ -1411,7 +1411,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		local git state, forcing a complete rebuild on the next
 		invokation of "peer exchange".
 	    }
-	} [fx::call peer state-reset]
+	} [fx::call peer state-clear]
 
 	private list {
 	    section Peering
