@@ -526,6 +526,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	    use .repository
 	} [fx::call user list]
+	default
 
 	private broadcast {
 	    section {User Management}
@@ -565,6 +566,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    use .repository
 	} [fx::call user update-contact]
     }
+    alias users = user list
 
     # # ## ### ##### ######## ############# ######################
     ## Extended configuration management.
