@@ -1,0 +1,240 @@
+Configuration
+    fx config available                List all available configuration
+                                       settings
+    fx config get <setting>            Print the value of the named
+                                       configuration setting
+    fx config list                     List all changed configuration settings
+                                       of the repository, and their values
+    fx config set <setting> <value>    Change the value of the named
+                                       configuration setting to the given text
+    fx config unset <setting>...       Remove the specified local configuration
+                                       setting
+
+Convenience
+    fx delegate <args>...         Delegate the command to the local fossil
+                                  executable
+    fx user delegate <args>...    Delegate the command 'user' to the local
+                                  fossil executable
+
+Debugging
+    fx debug levels     List all the debug levels known to the system, which we
+                        can enable to gain a (partial) narrative of the
+                        application-internal actions
+
+Enumerations
+    fx enum add <enum> <items>...             Extend the specified enumeration
+                                              with the given items
+    fx enum change <enum> <item> <newitem>    Rename the item in the specified
+                                              enumeration
+    fx enum create <newenum> [<items>...]     Create a new named enumeration
+    fx enum delete <enum>                     Delete the named enumeration
+    fx enum export <output> [<enums>...]      Save the specified enumeration(s)
+    fx enum import [<input>]                  Import one or more enumerations
+                                              from a save file
+    fx enum items <enum>                      Show the items in the specified
+                                              enumeration
+    fx enum list                              List all enumerations stored in
+                                              the repository
+    fx enum remove <enum> <items>...          Remove the named item(s) from the
+                                              specified enumeration
+    fx enums                                  List all enumerations stored in
+                                              the repository
+
+Introspection
+    fx note config show          Show the current mail setup for notifications
+    fx note route events         Show all events we can generate notifications
+                                 for
+    fx note route field list     Show all available ticket fields (for dynamic
+                                 routes)
+    fx note route fields         Show all available ticket fields (for dynamic
+                                 routes)
+    fx note route list           Show all configured mail destinations (per
+                                 event type)
+    fx note routes               Show all configured mail destinations (per
+                                 event type)
+    fx repository default        Print the name of the default repository, if
+                                 any
+    fx repository show           Print the name of the repository we are
+                                 working on, if any
+    fx ticket-fields             Show all available ticket fields (for dynamic
+                                 routes)
+    fx version                   Print version and revision of the application
+
+    Command history
+        fx history clear          Clear the saved history
+        fx history limit [<n>]    Limit the size of the history
+        fx history list [<n>]     Show the saved history of commands
+
+Mappings
+    fx map add <map> <key> <value>        Extend the specified mapping with the
+                                          given key and value
+    fx map create <newmap>                Create a new named mapping
+    fx map delete <map>                   Delete the named mapping
+    fx map export <output> [<maps>...]    Save the specified mapping(s)
+    fx map import [<input>]               Import one or more mappings from a
+                                          save file
+    fx map list                           List all mappings stored in the
+                                          repository
+    fx map remove <map> <items>...        Remove the named keys(s) from the
+                                          specified mapping
+    fx map show <map>                     Show the key/value pairs of the
+                                          specified mapping
+    fx maps                               List all mappings stored in the
+                                          repository
+
+Notifications
+    fx note deliver     Send notification emails to all configured
+                        destinations, for all new events (since the last
+                        delivery)
+
+    Control
+        fx note mark-notified [<uuid>]    Mark the specified (or all) artifacts
+                                          as having been notified before, thus
+                                          preventing generation of a
+                                          notification for them on the next
+                                          invokation of "note deliver"
+        fx note mark-pending [<uuid>]     Mark the specified (or all) artifacts
+                                          as having not been notified before
+        fx note show-notified             Show all events in the timeline
+                                          marked as notified
+        fx note show-pending              Show all events in the timeline
+                                          marked as pending
+        fx note update-history            Update the cached ticket history used
+                                          to calculate dynamic routes
+        fx note watched                   Show the list of repositories
+                                          currently watched (i
+
+    Destinations
+        fx note route add <event> <to>...       Add fixed mail destination for
+                                                the named event type
+        fx note route drop <event> [<to>...]    Remove the specified mail
+                                                destinations (glob pattern) for
+                                                the event type
+        fx note route events                    Show all events we can generate
+                                                notifications for
+        fx note route export <output>           Save the configured mail
+                                                destinations into a file
+        fx note route field add <field>...      Add field as source of mail
+                                                destinations for ticket events
+        fx note route field drop <field>...     Remove the specified field as
+                                                source of mail destinations for
+                                                ticket events
+        fx note route field list                Show all available ticket
+                                                fields (for dynamic routes)
+        fx note route fields                    Show all available ticket
+                                                fields (for dynamic routes)
+        fx note route import [<input>]          Import mail destinations from a
+                                                save file
+        fx note route list                      Show all configured mail
+                                                destinations (per event type)
+        fx note routes                          Show all configured mail
+                                                destinations (per event type)
+        fx ticket-fields                        Show all available ticket
+                                                fields (for dynamic routes)
+
+    Mail setup
+        fx note config export <output>      Save the notification configuration
+                                            into a file
+        fx note config import [<input>]     Import the notification
+                                            configuration from a save file
+        fx note config reset                Reset all parts of the mail setup
+                                            for notifications to their defaults
+        fx note config set <key> <value>    Set the specified part of the mail
+                                            setup for notifications
+        fx note config show                 Show the current mail setup for
+                                            notifications
+        fx note config unset <key>...       Reset the specified part of the
+                                            mail setup for notifications to its
+                                            default
+
+Peering
+    fx peer add <direction> <area> <peer>       Add direction and area of
+                                                exchange for a fossil peer
+    fx peer add-git <peer>                      Add export to a git peer
+    fx peer exchange                            Run a data exchange with all
+                                                configured peers
+    fx peer list                                List all peers stored in the
+                                                repository, and associated
+                                                definitions (what to
+                                                synchronize, direction, type of
+                                                peer)
+    fx peer remove <direction> <area> <peer>    Add direction and area of
+                                                exchange for a fossil peer
+    fx peer remove-git <peer>                   Remove export to a git peer
+    fx peer state [<dir>]                       Set and query the directory
+                                                used to store the local state
+                                                for the git peers of the
+                                                repository
+    fx peers                                    List all peers stored in the
+                                                repository, and associated
+                                                definitions (what to
+                                                synchronize, direction, type of
+                                                peer)
+
+Reporting
+    fx report add <title> [<spec>]    Add a report definition to the repository
+    fx report delete <id>             Delete the specified report definition
+    fx report get <id>                Retrieve the specified report definition
+    fx report list                    List all reports defined in the
+                                      repository
+
+Repository Management
+    fx repository default         Print the name of the default repository, if
+                                  any
+    fx repository reset           Unset the current default repository
+    fx repository set <target>    Set the path to the current default
+                                  repository
+    fx repository show            Print the name of the repository we are
+                                  working on, if any
+
+Testing
+    fx test branch <uuid>               Determine the branch of a checkin
+    fx test last-uuid                   Determine the uuid of the last commit
+                                        (on any branch)
+    fx test mail-address <address>      Parse the specified address into parts,
+                                        and determine if it is lexically ok for
+                                        us, or not, and why not in case of the
+                                        latter
+    fx test mail-for [<uuid>]           Generate the notification mail for the
+                                        specified artifact, and print it to
+                                        stdout
+    fx test mail-receivers [<uuid>]     Analyse the specified artifact and
+                                        determine the set of mail addresses to
+                                        send a notification to, fixed and
+                                        field-based
+    fx test mail-setup <destination>    Generate a test mail and send it using
+                                        the current mail configuration
+    fx test manifest-parse [<uuid>]     Parse the specified artifact as
+                                        manifest and print the resulting
+                                        array/dictionary to stdout
+    fx test tags <uuid>                 Determine the names, types, and values
+                                        of all tags associated with a checkin
+    fx test tip                         Determine the uuid of the last commit
+                                        (on any branch)
+
+User Management
+    fx user broadcast [<text>]            Send a mail to all accounts of the
+                                          repository
+    fx user contact <user> [<contact>]    Change the contact information for
+                                          the named user
+    fx user list                          Show all known users, their
+                                          information and capabilities
+    fx user pull                          Push user information from the
+                                          configured remote to here
+    fx user push                          Push local changes to the users to
+                                          the configured remote
+    fx user sync                          Sync the user information at the
+                                          configured remote and here
+
+Advanced
+    Armed & Dangerous
+        Shunning
+            fx shun add <uuid>...       Shun artifacts
+            fx shun list                Show the list of all shunned artifacts
+            fx shun remove <uuid>...    Reaccept artifacts which have been
+                                        shunned
+            fx shunned                  Show the list of all shunned artifacts
+
+Miscellaneous
+    fx restore [<input>]    Load all fx-managed state of a repository
+    fx save <output>        Save all fx-managed state of the repository

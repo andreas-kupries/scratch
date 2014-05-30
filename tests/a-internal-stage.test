@@ -1,0 +1,52 @@
+# -*- tcl -*- tcl.tk//DSL tcltest//EN//2.0 tcl.tk//DSL tcltest//EN//2.0
+## (c) 2014 Andreas Kupries
+# # ## ### ##### ######## ############# #####################
+## testing the test support. stage lifecycle.
+
+kt check Tcl     8.5
+kt check tcltest 2
+
+# # ## ### ##### ######## ############# #####################
+
+kt source support/common.tcl
+
+# # ## ### ##### ######## ############# #####################
+
+test stage-1.0 {stage lifecycle} -setup {
+    stage-open
+} -body {
+    indir [thehome] {
+	lsort -dict [fileutil::find .]
+    }
+} -cleanup {
+    stage-close
+} -result {./.fossil ./ckout ./ckout/.fslckout ./source.fossil}
+
+test stage-1.1 {stage examples} -setup {
+    stage-open
+} -body {
+    stage-manifests
+    in-ckout {
+	run-core fossil sqlite3 << {
+	    select * from blob ;
+	}
+    }
+} -cleanup {
+    stage-close
+} -match glob -result [viewFile [tmp]/support/manifests.txt]
+
+test stage-1.2 {stage examples, event information} -setup {
+    stage-open
+} -body {
+    stage-manifests
+    in-ckout {
+	run-core fossil sqlite3 << {
+	    select * from event ;
+	}
+    }
+} -cleanup {
+    stage-close
+} -match glob -result [viewFile [tmp]/support/events.txt]
+
+# # ## ### ##### ######## ############# #####################
+cleanupTests

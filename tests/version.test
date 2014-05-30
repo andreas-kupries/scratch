@@ -1,0 +1,24 @@
+# -*- tcl -*- tcl.tk//DSL tcltest//EN//2.0 tcl.tk//DSL tcltest//EN//2.0
+## (c) 2014 Andreas Kupries
+# # ## ### ##### ######## ############# #####################
+## client version
+
+kt check Tcl     8.5
+kt check tcltest 2
+
+# # ## ### ##### ######## ############# #####################
+
+kt source support/common.tcl
+
+# # ## ### ##### ######## ############# #####################
+
+test version-1.0 {client version, wrong args, too many} -body {
+    run version X
+} -returnCodes error -match glob -result "* cmdr: wrong#args, too many*"
+
+test version-1.1 {client version} -body {
+    run version
+} -match glob -result {fx *}
+
+# # ## ### ##### ######## ############# #####################
+cleanupTests

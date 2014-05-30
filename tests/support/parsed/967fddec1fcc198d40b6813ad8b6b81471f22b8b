@@ -1,0 +1,48 @@
+Checkout @ */fxhome.*/source.fossil: 967fddec1fcc198d40b6813ad8b6b81471f22b8b
++--------------------+-----------------------------------------------------------------------------------+
+| Key                | Value                                                                             |
++--------------------+-----------------------------------------------------------------------------------+
+| comment            | Cmdr 1.1 Release                                                                  |
+| ecomment           | Cmdr 1.1 Release                                                                  |
+| epoch              | 1392185132                                                                        |
+| epoch-event        | 1392185100                                                                        |
+| etype              | event                                                                             |
+| eventid            | e2adcf270058a1ffb63308d924fb4ebf1c7bacf4                                          |
+| footer             |                                                                                   |
+| header             | Automated mail by @cmd@, on behalf of @sender@                                    |
+| location           | http://bogus.testsuite.somewhere                                                  |
+| project            | source                                                                            |
+| self               | 967fddec1fcc198d40b6813ad8b6b81471f22b8b                                          |
+| sender             | \*Undefined\* Please set.                                                           |
+| tags,+bgcolor      | \* = #c0fff0                                                                       |
+| tags,+sym-cmdr-1-1 | \* !                                                                               |
+| text               | <b>Cmdr 1.1 Release</b> on February 11, 2014
+                                     |
+|                    | 
+                                                                                 |
+|                    | Archives of the release are available as:
+                                        |
+|                    | 
+                                                                                 |
+|                    | <ul>
+                                                                             |
+|                    | <li> <a href="zip/Cmdr-1.1.zip?uuid=cmdr-1-1">Zip Snapshot Archive</a>
+           |
+|                    | </li>
+                                                                            |
+|                    | <li> <a href="tarball/Cmdr-1.1.tar.gz?uuid=cmdr-1-1">Tar.gz Snapshot Archive</a>
+ |
+|                    | </li>
+                                                                            |
+|                    | <li> <a href="doc/cmdr-1-1/embedded/www/toc.html">Documentation (Online)</a>
+     |
+|                    | </li>
+                                                                            |
+|                    | </ul>
+                                                                            |
+|                    |                                                                                   |
+| type               | event                                                                             |
+| user               | aku                                                                               |
+| when               | 2014-02-12T06:05:32.820                                                           |
+| when-event         | 2014-02-12T06:05:00                                                               |
++--------------------+-----------------------------------------------------------------------------------+

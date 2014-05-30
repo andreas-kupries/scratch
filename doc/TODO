@@ -1,0 +1,10 @@
+
+- Artifacts are marked as seen even if the sending of their mail
+  fails. No idea yet of how to deal with multiple destinations
+  associated with a repo where some are ok, and some fail.
+
+- Long term idea: Make the mail multipart/mixed and use the /tinfo
+  link for the artifact s source for the text/html part. I.e. send the
+  change artifact rendered as html by fossil itself in the mail.
+
+- The type=t filtering of the timeline.rss seems to be broken in fossil.

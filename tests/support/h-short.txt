@@ -1,0 +1,418 @@
+fx config available [OPTIONS]
+    List all available configuration settings.
+
+fx config exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx config get [OPTIONS] <setting>
+    Print the value of the named configuration setting.
+
+fx config help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx config list [OPTIONS]
+    List all changed configuration settings of the repository, and their
+    values.
+
+fx config set [OPTIONS] <setting> <value>
+    Change the value of the named configuration setting to the given text.
+
+fx config unset [OPTIONS] <setting>...
+    Remove the specified local configuration setting. This sets it back to the
+    system default.
+
+fx debug exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx debug help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx debug levels [OPTIONS]
+    List all the debug levels known to the system, which we can enable to gain
+    a (partial) narrative of the application-internal actions.
+
+fx delegate [OPTIONS] <args>...
+    Delegate the command to the local fossil executable.
+
+fx enum add [OPTIONS] <enum> <items>...
+    Extend the specified enumeration with the given items.
+
+fx enum change [OPTIONS] <enum> <item> <newitem>
+    Rename the item in the specified enumeration. Careful, you may break your
+    ticketing system. Check first that all users have made the same
+    substitution.
+
+fx enum create [OPTIONS] <newenum> [<items>...]
+    Create a new named enumeration.
+
+fx enum delete [OPTIONS] <enum>
+    Delete the named enumeration. Careful, you may break your ticketing
+    system. Check first that the enumeration is not used anymore.
+
+fx enum exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx enum export [OPTIONS] <output> [<enums>...]
+    Save the specified enumeration(s). Defaults to all.
+
+fx enum help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx enum import [OPTIONS] [<input>]
+    Import one or more enumerations from a save file.
+
+fx enum items [OPTIONS] <enum>
+    Show the items in the specified enumeration.
+
+fx enum list [OPTIONS]
+    List all enumerations stored in the repository.
+
+fx enum remove [OPTIONS] <enum> <items>...
+    Remove the named item(s) from the specified enumeration. Careful, you may
+    break your ticketing system. Check first that the item is not used
+    anymore.
+
+fx enums [OPTIONS]
+    List all enumerations stored in the repository.
+
+fx exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx history clear [OPTIONS]
+    Clear the saved history.
+
+fx history exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx history help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx history limit [OPTIONS] [<n>]
+    Limit the size of the history. If no limit is specified the current limit
+    is shown.
+
+fx history list [OPTIONS] [<n>]
+    Show the saved history of commands.
+
+fx map add [OPTIONS] <map> <key> <value>
+    Extend the specified mapping with the given key and value.
+
+fx map create [OPTIONS] <newmap>
+    Create a new named mapping.
+
+fx map delete [OPTIONS] <map>
+    Delete the named mapping.
+
+fx map exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx map export [OPTIONS] <output> [<maps>...]
+    Save the specified mapping(s). Defaults to all.
+
+fx map help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx map import [OPTIONS] [<input>]
+    Import one or more mappings from a save file.
+
+fx map list [OPTIONS]
+    List all mappings stored in the repository.
+
+fx map remove [OPTIONS] <map> <items>...
+    Remove the named keys(s) from the specified mapping.
+
+fx map show [OPTIONS] <map>
+    Show the key/value pairs of the specified mapping.
+
+fx maps [OPTIONS]
+    List all mappings stored in the repository.
+
+fx note config exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx note config export [OPTIONS] <output>
+    Save the notification configuration into a file.
+
+fx note config help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx note config import [OPTIONS] [<input>]
+    Import the notification configuration from a save file.
+
+fx note config reset [OPTIONS]
+    Reset all parts of the mail setup for notifications to their defaults.
+
+fx note config set [OPTIONS] <key> <value>
+    Set the specified part of the mail setup for notifications.
+
+fx note config show [OPTIONS]
+    Show the current mail setup for notifications.
+
+fx note config unset [OPTIONS] <key>...
+    Reset the specified part of the mail setup for notifications to its
+    default.
+
+fx note deliver [OPTIONS]
+    Send notification emails to all configured destinations, for all new
+    events (since the last delivery).
+
+fx note exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx note help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx note mark-notified [OPTIONS] [<uuid>]
+    Mark the specified (or all) artifacts as having been notified before, thus
+    preventing generation of a notification for them on the next invokation of
+    "note deliver".
+
+fx note mark-pending [OPTIONS] [<uuid>]
+    Mark the specified (or all) artifacts as having not been notified before.
+    This forces the generation of a notification for them on the next
+    invokation of "note deliver".
+
+fx note route add [OPTIONS] <event> <to>...
+    Add fixed mail destination for the named event type.
+
+fx note route drop [OPTIONS] <event> [<to>...]
+    Remove the specified mail destinations (glob pattern) for the event type.
+
+fx note route events [OPTIONS]
+    Show all events we can generate notifications for.
+
+fx note route exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx note route export [OPTIONS] <output>
+    Save the configured mail destinations into a file.
+
+fx note route field add [OPTIONS] <field>...
+    Add field as source of mail destinations for ticket events.
+
+fx note route field drop [OPTIONS] <field>...
+    Remove the specified field as source of mail destinations for ticket
+    events.
+
+fx note route field exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx note route field help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx note route field list [OPTIONS]
+    Show all available ticket fields (for dynamic routes).
+
+fx note route fields [OPTIONS]
+    Show all available ticket fields (for dynamic routes).
+
+fx note route help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx note route import [OPTIONS] [<input>]
+    Import mail destinations from a save file.
+
+fx note route list [OPTIONS]
+    Show all configured mail destinations (per event type).
+
+fx note routes [OPTIONS]
+    Show all configured mail destinations (per event type).
+
+fx note show-notified [OPTIONS]
+    Show all events in the timeline marked as notified.
+
+fx note show-pending [OPTIONS]
+    Show all events in the timeline marked as pending.
+
+fx note update-history [OPTIONS]
+    Update the cached ticket history used to calculate dynamic routes.
+
+fx note watched [OPTIONS]
+    Show the list of repositories currently watched (i.e. those which have
+    active routes). These fall under the purview of 'note deliver --all'.
+
+fx peer add [OPTIONS] <direction> <area> <peer>
+    Add direction and area of exchange for a fossil peer.
+
+fx peer add-git [OPTIONS] <peer>
+    Add export to a git peer.
+
+fx peer exchange [OPTIONS]
+    Run a data exchange with all configured peers
+
+fx peer exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx peer help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx peer list [OPTIONS]
+    List all peers stored in the repository, and associated definitions (what
+    to synchronize, direction, type of peer).
+
+fx peer remove [OPTIONS] <direction> <area> <peer>
+    Add direction and area of exchange for a fossil peer.
+
+fx peer remove-git [OPTIONS] <peer>
+    Remove export to a git peer.
+
+fx peer state [OPTIONS] [<dir>]
+    Set and query the directory used to store the local state for the git
+    peers of the repository. The default is a directory sibling to the fossil
+    repository file.
+
+fx peers [OPTIONS]
+    List all peers stored in the repository, and associated definitions (what
+    to synchronize, direction, type of peer).
+
+fx report add [OPTIONS] <title> [<spec>]
+    Add a report definition to the repository.
+
+fx report delete [OPTIONS] <id>
+    Delete the specified report definition.
+
+fx report exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx report get [OPTIONS] <id>
+    Retrieve the specified report definition.
+
+fx report help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx report list [OPTIONS]
+    List all reports defined in the repository.
+
+fx repository default [OPTIONS]
+    Print the name of the default repository, if any.
+
+fx repository exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx repository help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx repository reset [OPTIONS]
+    Unset the current default repository.
+
+fx repository set [OPTIONS] <target>
+    Set the path to the current default repository.
+
+fx repository show [OPTIONS]
+    Print the name of the repository we are working on, if any.
+
+fx restore [OPTIONS] [<input>]
+    Load all fx-managed state of a repository.
+
+fx save [OPTIONS] <output>
+    Save all fx-managed state of the repository.
+
+fx shun add [OPTIONS] <uuid>...
+    Shun artifacts.
+
+fx shun exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx shun help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx shun list [OPTIONS]
+    Show the list of all shunned artifacts.
+
+fx shun remove [OPTIONS] <uuid>...
+    Reaccept artifacts which have been shunned.
+
+fx shunned [OPTIONS]
+    Show the list of all shunned artifacts.
+
+fx test branch [OPTIONS] <uuid>
+    Determine the branch of a checkin.
+
+fx test exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx test help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx test last-uuid [OPTIONS]
+    Determine the uuid of the last commit (on any branch). In other words, the
+    uuid of the repository tip.
+
+fx test mail-address [OPTIONS] <address>
+    Parse the specified address into parts, and determine if it is lexically
+    ok for us, or not, and why not in case of the latter.
+
+fx test mail-for [OPTIONS] [<uuid>]
+    Generate the notification mail for the specified artifact, and print it to
+    stdout.
+
+fx test mail-receivers [OPTIONS] [<uuid>]
+    Analyse the specified artifact and determine the set of mail addresses to
+    send a notification to, fixed and field-based.
+
+fx test mail-setup [OPTIONS] <destination>
+    Generate a test mail and send it using the current mail configuration.
+
+fx test manifest-parse [OPTIONS] [<uuid>]
+    Parse the specified artifact as manifest and print the resulting
+    array/dictionary to stdout.
+
+fx test tags [OPTIONS] <uuid>
+    Determine the names, types, and values of all tags associated with a
+    checkin.
+
+fx test tip [OPTIONS]
+    Determine the uuid of the last commit (on any branch). In other words, the
+    uuid of the repository tip.
+
+fx ticket-fields [OPTIONS]
+    Show all available ticket fields (for dynamic routes).
+
+fx user broadcast [OPTIONS] [<text>]
+    Send a mail to all accounts of the repository.
+
+fx user contact [OPTIONS] <user> [<contact>]
+    Change the contact information for the named user
+
+fx user delegate [OPTIONS] <args>...
+    Delegate the command 'user' to the local fossil executable.
+
+fx user exit [OPTIONS]
+    Exit the shell. No-op if not in a shell.
+
+fx user help [OPTIONS] [<cmdname>...]
+    Retrieve help for a command or command set. Without arguments help for all
+    commands is given. The default format is --full.
+
+fx user list [OPTIONS]
+    Show all known users, their information and capabilities
+
+fx user pull [OPTIONS]
+    Push user information from the configured remote to here.
+
+fx user push [OPTIONS]
+    Push local changes to the users to the configured remote
+
+fx user sync [OPTIONS]
+    Sync the user information at the configured remote and here.
+
+fx version [OPTIONS]
+    Print version and revision of the application.

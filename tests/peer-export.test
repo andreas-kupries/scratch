@@ -1,0 +1,63 @@
+# -*- tcl -*- tcl.tk//DSL tcltest//EN//2.0 tcl.tk//DSL tcltest//EN//2.0
+## (c) 2014 Andreas Kupries
+# # ## ### ##### ######## ############# #####################
+## client peer export - Export the peering information.
+
+kt check Tcl     8.5
+kt check tcltest 2
+
+# # ## ### ##### ######## ############# #####################
+
+kt source support/common.tcl
+
+# # ## ### ##### ######## ############# #####################
+
+test peer-export-1.0 {client peer export, wrong args, not enough} -setup {
+    stage-open
+} -body {
+    run peer export
+} -cleanup {
+    stage-close
+} -match glob -returnCodes error -result "* cmdr: wrong#args, not enough*"
+
+test peer-export-1.1 {client peer export, wrong args, too many} -setup {
+    stage-open
+} -body {
+    run peer export E X
+} -cleanup {
+    stage-close
+} -match glob -returnCodes error -result "* cmdr: wrong#args, too many*"
+
+# # ## ### ##### ######## ############# #####################
+
+test peer-export-2.0 {client peer export, nothing} -setup {
+    stage-open
+} -body {
+    on-stage {
+	run peer export E
+	viewFile [pwd]/E
+    }
+} -cleanup {
+    removeFile [pwd]/E
+    stage-close
+} -match glob -result [viewFile support/pe-empty.txt]
+
+test peer-export-2.1 {client peer export} -setup {
+    stage-open
+    on-stage {
+	run peer add-git          http://git-foo
+	run peer add push content http://foo
+	run peer add sync email   http://foo-backup
+    }
+} -body {
+    on-stage {
+	run peer export E
+	viewFile [pwd]/E
+    }
+} -cleanup {
+    removeFile [pwd]/E
+    stage-close
+} -match glob -result [viewFile support/pe-21.txt]
+
+# # ## ### ##### ######## ############# #####################
+cleanupTests

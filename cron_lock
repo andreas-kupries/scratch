@@ -1,0 +1,102 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# # ## ### ##### ######## ############# ######################
+## Syntax = $0 lock-name cmd...
+
+# @@ Meta Begin
+# Application cron_lock   ?
+# Meta author      {Andreas Kupries}
+# Meta category    ?
+# Meta description ?
+# Meta location    http:/core.tcl.tk/akupries/fx
+# Meta platform    tcl
+# Meta require     fx
+# Meta require     {Tcl 8.4-}
+# Meta subject     ?
+# Meta summary     ?
+# @@ Meta End
+
+package require Tcl 8.4
+
+#!/usr/bin/env tclsh
+# # ## ### ##### ######## ############# ######################
+##
+
+proc main {} {
+    cmdline
+    protected run
+    return
+}
+
+proc cmdline {} {
+    global argv
+    if {[llength $argv] < 2} usage
+
+    global cmd
+    global lock
+
+    set cmd  [lrange $argv 1 end]
+    set lock ~/.lock.[lindex $argv 0]
+    return
+}
+
+proc usage {} {
+    global argv0
+    puts stderr "Usage: $argv0 lock-name cmd ?arg...?"
+    exit 1
+}
+
+proc protected {args} {
+    lock
+    # Failures in the sub-ordinate command do not prevent us from
+    # releasing the lock.
+    catch { uplevel 1 $args }
+    release
+    return
+}
+
+proc run {} {
+    global cmd
+    exec >@ stdout 2>@ stderr {*}$cmd
+    return
+}
+
+proc lock {} {
+    global lock
+    # Note: This works without race because the rename operation
+    # itself is atomic at OS level. If two processes try at the same
+    # time only one of them will win.
+
+    set marker [marker]
+    if {[catch {
+	file rename $marker $lock
+    }]} {
+	# Can't move our marker into place, something still
+	# runs. Abort. Don't forget to remove the failed marker.
+	file delete -force $marker
+	exit 0
+    }
+    return
+}
+
+proc release {} {
+    global lock
+    file delete -force $lock
+    return
+}
+
+proc marker {} {
+    return [touch ~/.lock.[pid]]
+}
+
+proc touch {path} {
+    close [open $path w]
+    return $path
+}
+
+##
+# # ## ### ##### ######## ############# ######################
+##
+
+main
+exit 0

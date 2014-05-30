@@ -1,0 +1,24 @@
+Checkout @ */fxhome.*/source.fossil: 35db5321bb5fbf5336cf494590c46b040bee39d4
++-----------------+-------------------------------------------------------------+
+| Key             | Value                                                       |
++-----------------+-------------------------------------------------------------+
+| attachment,op   | added                                                       |
+| attachment,path | tklib-0.6.tar.bz2                                           |
+| attachment,uuid | 6a397dec6188148cf6a6fe290cf2bd92a9190c42                    |
+| comment         | Tklib 0.6 Release, March 25, bzip2 compressed tarball.
+     |
+|                 |                                                             |
+| ecomment        | Add attachment "tklib-0.6.tar.bz2" to wiki page \[Downloads\] |
+| epoch           | 1364266949                                                  |
+| etype           | wiki                                                        |
+| footer          |                                                             |
+| header          | Automated mail by @cmd@, on behalf of @sender@              |
+| location        | http://bogus.testsuite.somewhere                            |
+| project         | source                                                      |
+| self            | 35db5321bb5fbf5336cf494590c46b040bee39d4                    |
+| sender          | \*Undefined\* Please set.                                     |
+| target          | Downloads                                                   |
+| type            | attachment                                                  |
+| user            | aku                                                         |
+| when            | 2013-03-26T03:02:29.233                                     |
++-----------------+-------------------------------------------------------------+
