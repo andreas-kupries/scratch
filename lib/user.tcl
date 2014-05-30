@@ -128,10 +128,10 @@ proc ::fx::user::update-contact {config} {
     set now     [clock seconds]
 
     # TODO: feedback ...
-    # TODO: add colorization and general animated terminal feedback code.
+    # TODO: add general animated terminal feedback code.
     # TODO: Add --debug support.
 
-    puts -nonewline "Updating \"$login\" to \"$contact\""
+    puts -nonewline "Updating \"$login\" to \"$contact\" ... "
     flush stdout
 
     fossil repository transaction {
@@ -143,7 +143,7 @@ proc ::fx::user::update-contact {config} {
 	}
     }
 
-    puts OK
+    puts [color good OK]
     return
 }
 

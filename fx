@@ -18,12 +18,9 @@
 package require Tcl 8.5
 package require debug
 package require debug::caller
-package require fx::color
+package require cmdr::color
 
-#debug header  {[fx color = sda_bgblack][fx color = sda_bgcyan][clock format [clock seconds]] }
-#debug trailer {[fx color = sda_reset]}
-
-debug header  {[::fx color = sda_fgblack][::fx color = sda_bgcyan][clock format [clock seconds]][::fx color = sda_reset] }
+debug header {[::cmdr color {black bg-cyan} [clock format [clock seconds]]] }
 
 package require fx
 

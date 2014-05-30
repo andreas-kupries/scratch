@@ -430,6 +430,13 @@ proc ::fx::peer::import {config} {
     $i eval $data
     interp delete $i
 
+    variable imported 
+
+    if {![llength $imported]} {
+	puts [color note {No peers}]
+	return
+    }
+
     if {!$extend} {
 	puts [color warning "Import replaces all existing peers ..."]
 	# Inlined delete of all peers
@@ -437,12 +444,6 @@ proc ::fx::peer::import {config} {
 	map delete fx@peer@git
     } else {
 	puts [color note "Import keeps the existing peers ..."]
-    }
-
-    variable imported
-    if {![llength $imported]} {
-	puts [color note {No peers}]
-	return
     }
 
     puts "New peers ..."
