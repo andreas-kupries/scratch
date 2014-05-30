@@ -28,3 +28,13 @@
 - watch-do does not lock against multiple concurrent runs. Ok, for
   this I prefer to make a helper script which handles the locking and
   is the main script used in cron.
+
+- All tools replicate some code to access the shared state file.
+  Should be in a small package instead.  Or merge all the scripts into
+  a single tool.
+
+- The database schema is not fully baked.  I currently have artifact
+  --(n:1)-- repository and equate repository with project.  This does
+  not account for multiple repositories (mirrors) of a project.  And
+  for robustness watching multiple mirrors of a project is likely
+  sensible.
