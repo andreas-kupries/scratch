@@ -1394,6 +1394,25 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	} [fx::call peer state-dir]
 
+	private state-reset {
+	    section Advanced {Armed & Dangerous} Peering
+	    description {
+		Resets the uuid information used to track new commits.
+		This forces a re-import of the repository into the local
+		git state, and further forces a push to the git peers on the
+		next invokation of "peer exchange".
+	    }
+	} [fx::call peer state-reset]
+
+	private state-clear {
+	    section Advanced {Armed & Dangerous} Peering
+	    description {
+		Like "state-reset" but additionally discards the entire
+		local git state, forcing a complete rebuild on the next
+		invokation of "peer exchange".
+	    }
+	} [fx::call peer state-clear]
+
 	private list {
 	    section Peering
 	    section Introspection

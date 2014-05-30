@@ -40,8 +40,9 @@ namespace eval ::fx {
 }
 namespace eval ::fx::peer {
     namespace export \
-	list add remove add-git remove-git \
-	exchange state-dir export import init
+	list add remove add-git remove-git exchange \
+	state-dir state-reset state-clear \
+	export import init
     namespace ensemble create
 
     namespace import ::cmdr::color
@@ -254,6 +255,66 @@ proc ::fx::peer::state-dir {config} {
     return
 }
 
+proc ::fx::peer::state-reset {config} {
+    debug.fx/peer {}
+    fossil show-repository-location
+    init
+
+    set state [Statedir]
+    if {[IsState $state]} {
+	if {[MyState $state _ _]} {
+	    puts "  Drop tracked uuid from state [color note $state]"
+	    GitDropLast $state
+	} else {
+	    puts "  [color error {Not touching}] non-owned state [color note $state]"
+	}
+    } else {
+	puts "  Ignoring non-state [color note $state]"
+    }
+
+    fossil repository transaction {
+	set peers [map get fx@peer@git]
+	dict for {url last} $peers {
+	    puts "  Cleared tracked uuid for git peer [color note $url]"
+	    map remove1 fx@peer@git $url
+	    map add1    fx@peer@git $url {}
+	}
+    }
+
+    puts [color good OK]
+    return
+}
+
+proc ::fx::peer::state-clear {config} {
+    debug.fx/peer {}
+    fossil show-repository-location
+    init
+
+    set state [Statedir]
+    if {[IsState $state]} {
+	if {[MyState $state _ _]} {
+	    puts "  Discard state [color note $state]"
+	    file delete -force $state
+	} else {
+	    puts "  [color error {Not touching}] non-owned state [color note $state]"
+	}
+    } else {
+	puts "  Ignoring non-state [color note $state]"
+    }
+
+    fossil repository transaction {
+	set peers [map get fx@peer@git]
+	dict for {url last} $peers {
+	    puts "  Cleared tracked uuid for git peer [color note $url]"
+	    map remove1 fx@peer@git $url
+	    map add1    fx@peer@git $url {}
+	}
+    }
+
+    puts [color good OK]
+    return
+}
+
 # # ## ### ##### ######## ############# ######################
 
 proc ::fx::peer::exchange {config} {
@@ -369,6 +430,13 @@ proc ::fx::peer::import {config} {
     $i eval $data
     interp delete $i
 
+    variable imported 
+
+    if {![llength $imported]} {
+	puts [color note {No peers}]
+	return
+    }
+
     if {!$extend} {
 	puts [color warning "Import replaces all existing peers ..."]
 	# Inlined delete of all peers
@@ -376,12 +444,6 @@ proc ::fx::peer::import {config} {
 	map delete fx@peer@git
     } else {
 	puts [color note "Import keeps the existing peers ..."]
-    }
-
-    variable imported
-    if {![llength $imported]} {
-	puts [color note {No peers}]
-	return
     }
 
     puts "New peers ..."
@@ -491,28 +553,39 @@ proc ::fx::peer::Statedir {} {
 		[fossil repository-location].peer-state]
 }
 
+proc ::fx::peer::IsState {statedir} {
+    debug.fx/peer {}
+    return [expr {[file exists      $statedir] &&
+		  [file isdirectory $statedir] &&
+		  [file exists      $statedir/git/git-daemon-export-ok] &&
+		  [file isfile      $statedir/git/git-daemon-export-ok]
+	      }]
+}
+
+proc ::fx::peer::MyState {statedir pv ov} {
+    upvar 1 $pv pcode $ov owner
+    debug.fx/peer {}
+    set pcode [config get-local project-code]
+    set owner [string trim [fileutil::cat $statedir/owner]]
+    return [expr {$pcode eq $owner}]
+}
+
+
 # taken from old setup-import script.
 proc ::fx::peer::GitSetup {statedir project location} {
     debug.fx/peer {}
 
-    set pcode [config get-local project-code]
-
     puts "Exchange [string repeat _ 40]"
     puts "Git State Directory"
 
-    if {[file exists      $statedir] &&
-	[file isdirectory $statedir] &&
-	[file exists      $statedir/git/git-daemon-export-ok] &&
-	[file isfile      $statedir/git/git-daemon-export-ok]
-    } {
+    if {[IsState $statedir]} {
 	debug.fx/peer {/initialized}
 	puts "  Ready at [color note $statedir]."
 
 	# A ready directory may still belong to a different
 	# project. Check this.
 
-	set owner [string trim [fileutil::cat $statedir/owner]]
-	if {$pcode ne $owner} {
+	if {![MyState $statedir pcode owner]} {
 	    puts [color error "  Error: Claimed by project \"$owner\""]
 	    puts [color error "  Error: Which is not us    \"$pcode\""]
 	    # Abort self, and caller (exchange).
@@ -521,6 +594,8 @@ proc ::fx::peer::GitSetup {statedir project location} {
 
 	puts [color good OK]
 	return
+    } else {
+	set pcode [config get-local project-code]
     }
 
     puts "  Initialize at [color note $statedir]."
@@ -629,6 +704,12 @@ proc ::fx::peer::GitLastImported {git} {
 proc ::fx::peer::GitUpdateImported {git current} {
     set idfile $git/fossil-import-id
     fileutil::writeFile $idfile $current
+    return
+}
+
+proc ::fx::peer::GitDropLast {statedir} {
+    set idfile $statedir/git/fossil-import-id
+    file delete -force $idfile
     return
 }
 
