@@ -206,7 +206,8 @@ cmdr create fx::fx [file tail $::argv0] {
     ## I.e. Highest priority is printed first, at the top, beginning.
 
     common *category-order* {
-	Advanced -9000
+	Convenience -8900
+	Advanced    -9000
     }
 
     # # ## ### ##### ######## ############# ######################
@@ -741,7 +742,6 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	common *all* -extend {
 	    use .repository
-	    section Mappings
 	}
 
 	common .map {
@@ -754,6 +754,7 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	private list {
 	    section Mappings
+	    section Introspection
 	    description {
 		List all mappings stored in the repository.
 	    }
@@ -761,6 +762,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	default
 
 	private create {
+	    section Mappings Control
 	    description {
 		Create a new named mapping.
 	    }
@@ -772,6 +774,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map create]
 
 	private delete {
+	    section Mappings Control
 	    description {
 		Delete the named mapping.
 	    }
@@ -779,7 +782,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map delete]
 
 	private rename {
-	    section Mappings
+	    section Mappings Control
 	    description {
 		Rename the named mapping.
 	    }
@@ -792,6 +795,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map rename]
 
 	private export {
+	    section Mappings Save/Restore
 	    description {
 		Save the specified mapping(s).
 		Defaults to all.
@@ -807,6 +811,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map export]
 
 	private import {
+	    section Mappings Save/Restore
 	    description {
 		Import one or more mappings from a save file.
 	    }
@@ -815,6 +820,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map import]
 
 	private add {
+	    section Mappings Control
 	    description {
 		Extend the specified mapping with the given key and value.
 	    }
@@ -832,6 +838,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map add]
 
 	private remove {
+	    section Mappings Control
 	    description {
 		Remove the named keys(s) from the specified mapping.
 	    }
@@ -845,6 +852,8 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call map remove]
 
 	private show {
+	    section Mappings
+	    section Introspection
 	    description {
 		Show the key/value pairs of the specified mapping.
 	    }
@@ -878,6 +887,7 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	private list {
 	    section Enumerations
+	    section Introspection
 	    description {
 		List all enumerations stored in the repository.
 	    }
@@ -885,7 +895,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	default
 
 	private create {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Create a new named enumeration.
 	    }
@@ -904,7 +914,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum create]
 
 	private delete {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Delete the named enumeration. Careful, you may break your
 		ticketing system. Check first that the enumeration is not
@@ -914,7 +924,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum delete]
 
 	private rename {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Rename the named enumeration.
 	    }
@@ -927,7 +937,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum rename]
 
 	private export {
-	    section Enumerations
+	    section Enumerations Save/Restore
 	    description {
 		Save the specified enumeration(s).
 		Defaults to all.
@@ -944,7 +954,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum export]
 
 	private import {
-	    section Enumerations
+	    section Enumerations Save/Restore
 	    description {
 		Import one or more enumerations from a save file.
 	    }
@@ -953,7 +963,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum import]
 
 	private add {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Extend the specified enumeration with the given items.
 	    }
@@ -967,7 +977,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum add]
 
 	private remove {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Remove the named item(s) from the specified enumeration.
 		Careful, you may break your ticketing system. Check
@@ -983,7 +993,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call enum remove]
 
 	private change {
-	    section Enumerations
+	    section Enumerations Control
 	    description {
 		Rename the item in the specified enumeration.
 		Careful, you may break your ticketing system. Check
@@ -1004,6 +1014,7 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	private items {
 	    section Enumerations
+	    section Introspection
 	    description {
 		Show the items in the specified enumeration.
 	    }
@@ -1120,7 +1131,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    } [fx::call note mail-config-reset]
 
 	    private export {
-		section Notifications {Mail setup}
+		section Notifications Save/Restore
 		description {
 		    Save the notification configuration into a file.
 		}
@@ -1130,7 +1141,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    } [fx::call note mail-config-export]
 
 	    private import {
-		section Notifications {Mail setup}
+		section Notifications Save/Restore
 		description {
 		    Import the notification configuration from a save file.
 		}
@@ -1160,7 +1171,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    section Notifications Control
 	    description {
 		Show the list of repositories currently watched
-		(i.e. those which have active routes). These fall
+		(<=> those which have active routes). These fall
 		under the purview of 'note deliver --all'.
 	    }
 	} [fx::call note watched]
@@ -1182,7 +1193,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    default
 
 	    private export {
-		section Notifications Destinations
+		section Notifications Save/Restore
 		description {
 		    Save the configured mail destinations into a file.
 		}
@@ -1191,7 +1202,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    } [fx::call note route-export]
 
 	    private import {
-		section Notifications Destinations
+		section Notifications Save/Restore
 		description {
 		    Import mail destinations from a save file.
 		}
@@ -1362,10 +1373,10 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	common *all* -extend {
 	    use .repository
-	    section Peering
 	}
 
 	private state {
+	    section Peering Control
 	    description {
 		Set and query the directory used to store the
 		local state for the git peers of the repository.
@@ -1382,6 +1393,8 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call peer state-dir]
 
 	private list {
+	    section Peering
+	    section Introspection
 	    description {
 		List all peers stored in the repository, and associated
 		definitions (what to synchronize, direction, type of peer).
@@ -1439,6 +1452,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	}
 
 	private add {
+	    section Peering Control
 	    description {
 		Add direction and area of exchange for a fossil peer.
 	    }
@@ -1448,6 +1462,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call peer add]
 
 	private remove {
+	    section Peering Control
 	    description {
 		Add direction and area of exchange for a fossil peer.
 	    }
@@ -1457,6 +1472,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call peer remove]
 
 	private add-git {
+	    section Peering Control
 	    description {
 		Add export to a git peer.
 	    }
@@ -1464,6 +1480,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call peer add-git]
 
 	private remove-git {
+	    section Peering Control
 	    description {
 		Remove export to a git peer.
 	    }
@@ -1471,6 +1488,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	} [fx::call peer remove-git]
 
 	private exchange {
+	    section Peering
 	    description {
 		Run a data exchange with all configured peers
 	    }
@@ -1523,9 +1541,8 @@ cmdr create fx::fx [file tail $::argv0] {
 	description {
 	    Various commands to test the system and its configuration.
 	}
-
 	common *all* -extend {
-	    section Testing
+	    section Advanced Testing
 	    # We do not have use .repository here because the
 	    # 'mail-address' command does not use it contrary
 	    # to all others.
@@ -1617,9 +1634,11 @@ cmdr create fx::fx [file tail $::argv0] {
 	    Various commands to help debugging the system itself
 	    and its configuration.
 	}
+	common *all* -extend {
+	    section Advanced Debugging
+	}
 
 	private levels {
-	    section Debugging
 	    description {
 		List all the debug levels known to the system,
 		which we can enable to gain a (partial) narrative
