@@ -16,6 +16,7 @@
 # # ## ### ##### ######## ############# ######################
 
 package require Tcl 8.5
+package require cmdr::color
 package require fx::table
 package require fx::fossil
 package require fx::mailer
@@ -34,6 +35,7 @@ namespace eval ::fx::user {
 	broadcast
     namespace ensemble create
 
+    namespace import ::cmdr::color
     namespace import ::fx::table::do
     namespace import ::fx::fossil
     namespace import ::fx::mailer
