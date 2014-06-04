@@ -18,6 +18,7 @@ package require Tcl 8.5
 package require debug
 package require debug::caller
 package require fx::fossil
+package require fx::util
 
 # # ## ### ##### ######## ############# ######################
 
@@ -37,6 +38,7 @@ namespace eval ::fx::mgr::state {
     namespace ensemble create
 
     namespace import ::fx::fossil
+    namespace import ::fx::util
 
     # List of commands to run to dump all tables managed by fx. The
     # relevant modules claim their interest via 'register'.
@@ -67,7 +69,7 @@ proc ::fx::mgr::state::list {} {
 
 proc ::fx::mgr::state::begin {path} {
     debug.fx/mgr/state {}
-    variable thechan [open $path w]
+    variable thechan [util open $path]
     return
 }
 
