@@ -265,7 +265,12 @@ proc ::fx::mailgen::checkin {m} {
     } else {
 	foreach action [lsort -dict [dict keys $changes]] {
 	    +T $action ""
-	    foreach path [lsort -dict [dict get $changes $action]] {
+	    set paths [lsort -dict [dict get $changes $action]]
+	    if {[llength $paths] > 5} {
+		set paths [lrange $paths 0 4]
+		lappend paths "(truncated)"
+	    }
+	    foreach path $paths {
 		+T "" $path
 	    }
 	}
