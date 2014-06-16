@@ -28,11 +28,11 @@ encrypted or not, the necessary credentials, etc.
 }]
 
 in each configuration command of the example. This is just visual
-clutter. In actual script it is recommended to use [option -R]
+clutter. In actual scripts it is recommended to use [option -R]
 however, as this allows the parallel execution of the script for
 different repositories. The set|reset commands involve global state,
 the "default repository", which forces serialization to avoid the
-script instances from intefering with each other.
+script instances from interfering with each other.
 
 [comment ------------------------------------------------------------]
 [item] The attributes [term host], [term user], and [term password]
@@ -40,7 +40,7 @@ should be self-explanatory. They are the mail host to talk to, as
 specified by your network administrator and/or ISP, and the
 credentials it expects to allow access.
 
-[para] There is a [term port] attribte as well, which needs to be set
+[para] There is a [term port] attribute as well, which needs to be set
 if and only if a non-standard port is used for SMTP.
 
 [para] Similarly the [term tls] attribute (a boolean) has to be set

@@ -33,7 +33,7 @@ separately instead of as part of the next group of commands.
     fx test mail-for       --all
 }]
 
-[para] These commands go over all the changes i nthe repository and
+[para] These commands go over all the changes in the repository and
 checks that the system is able to parse their manifests, can generate
 a list of destination mail addresses for them, and generate mail for
 them.
