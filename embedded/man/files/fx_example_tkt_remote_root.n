@@ -387,18 +387,18 @@ to avoid typing
 .CE
 .IP
 in each configuration command of the example\&. This is just visual
-clutter\&. In actual script it is recommended to use \fB-R\fR
+clutter\&. In actual scripts it is recommended to use \fB-R\fR
 however, as this allows the parallel execution of the script for
 different repositories\&. The set|reset commands involve global state,
 the "default repository", which forces serialization to avoid the
-script instances from intefering with each other\&.
+script instances from interfering with each other\&.
 .IP \(bu
 The attributes \fIhost\fR, \fIuser\fR, and \fIpassword\fR
 should be self-explanatory\&. They are the mail host to talk to, as
 specified by your network administrator and/or ISP, and the
 credentials it expects to allow access\&.
 .sp
-There is a \fIport\fR attribte as well, which needs to be set
+There is a \fIport\fR attribute as well, which needs to be set
 if and only if a non-standard port is used for SMTP\&.
 .sp
 Similarly the \fItls\fR attribute (a boolean) has to be set
@@ -562,7 +562,7 @@ separately instead of as part of the next group of commands\&.
 
 .CE
 .PP
-These commands go over all the changes i nthe repository and
+These commands go over all the changes in the repository and
 checks that the system is able to parse their manifests, can generate
 a list of destination mail addresses for them, and generate mail for
 them\&.
