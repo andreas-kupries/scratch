@@ -18,6 +18,7 @@ package require tls
 package require smtp
 package require mime
 package require fx::fossil
+package require fx::mailgen
 package require fx::table
 package require fx::mgr::config
 package require fx::validate::mail-config
@@ -255,15 +256,19 @@ proc ::fx::mailer::send {config receivers corpus {verbose 0}} {
 
     foreach dst $receivers {
 	puts "    To: $dst"
+	mailgen context-push "To: $dst"
+	try {
+	    # Can the 'From' be configured via -header here ?
+	    # I.e. config ? Alternate: -originator
 
-	# Can the 'From' be configured via -header here ?
-	# I.e. config ? Alternate: -originator
-
-	set res [smtp::sendmessage $token \
-		     -header [list To $dst] \
-		     {*}$config]
-	foreach item $res {
-	    puts "    ERR $item"
+	    set res [smtp::sendmessage $token \
+			 -header [list To $dst] \
+			 {*}$config]
+	    foreach item $res {
+		puts "    ERR $item"
+	    }
+	} finally {
+	    mailgen context-pop
 	}
     }
 
