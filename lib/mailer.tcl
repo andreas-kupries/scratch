@@ -39,6 +39,7 @@ namespace eval ::fx::mailer {
     namespace ensemble create
 
     namespace import ::fx::fossil
+    namespace import ::fx::mailgen
     namespace import ::fx::mgr::config
     namespace import ::fx::validate::mail-config
 
