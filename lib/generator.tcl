@@ -614,7 +614,7 @@ proc ::fx::mailgen::Subject {{prefix {}}} {
 }
 
 proc ::fx::mailgen::Headers {project location subject epoch} {
-    set date  [clock format $epoch -gmt 1]
+    set date  [clock format $epoch -format {%d %b %Y %H:%M:%S %z}]
 
     upvar 1 lines lines
     + "Subject: $subject"
