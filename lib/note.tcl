@@ -1098,15 +1098,33 @@ proc ::fx::note::deliver {config} {
 	# TODO: switchable progress animation
 
 	incr changes
-        seen mark-notified $uuid
 	lassign [MailCore $uuid $type $comment $map $pinfo] recv m
 
 	if {[llength $recv]} {
 	    puts [color note "Change $uuid :: $comment"]
-	    mailer send $mc $recv [mailgen artifact $m] $verbose
+	    try {
+		mailgen context "UUID $type $uuid"
+		mailer send $mc $recv [mailgen artifact $m] $verbose
+	    } on error {e o} {
+		# HACK. REACH up into fx for a command to mail internal errors.
+		# TODO: Move fx::mail-error to a better place for such sharing.
+		set ei $::errorInfo
+		try {
+		    # Errors while sending an error mail cause us to
+		    # give up on mail and dump everything into the
+		    # log instead.
+		    ::fx::mail-error $ei
+		} on error {em om} {
+		    puts stderr [color error $::errorInfo]
+		    puts stderr [color note "  while mailing "]
+		    puts stderr [color error $ei]
+		}
+	    }
 	} else {
 	    puts [color note "Change $uuid ** ignored, no receivers"]
 	}
+
+        seen mark-notified $uuid
     }
 
     if {$changes} return

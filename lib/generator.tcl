@@ -31,7 +31,8 @@ namespace eval ::fx {
     namespace ensemble create
 }
 namespace eval ::fx::mailgen {
-    namespace export test artifact limit for-error for-limit
+    namespace export test artifact limit for-error for-limit \
+	context context-push context-pop
     # manifest types
     # - attachment OK
     # - checkin    OK (to test: branch/changeset extraction)
@@ -49,6 +50,7 @@ namespace eval ::fx::mailgen {
     # TODO: Make them configurable
     variable flimit   2048
     variable flsuffix "\n...((truncated))"
+    variable context  {}
 }
 
 # # ## ### ##### ######## ############# ######################
@@ -57,7 +59,30 @@ namespace eval ::fx::mailgen {
 ## which tells the type of change artifact (ticket, wiki, event)
 ## to configure the mail in detail.
 
+proc ::fx::mailgen::context {args} {
+    debug.fx/mailgen {}
+    variable context $args
+    return
+}
+
+proc ::fx::mailgen::context-push {c} {
+    debug.fx/mailgen {}
+    variable context
+    lappend  context $c
+    return
+}
+
+proc ::fx::mailgen::context-pop {} {
+    debug.fx/mailgen {}
+    variable context
+    set context [lrange $context 0 end-1]
+    return
+}
+
 proc ::fx::mailgen::for-error {stacktrace} {
+    debug.fx/mailgen {}
+    variable context
+
     Begin
     Headers \
 	FX \
@@ -65,7 +90,7 @@ proc ::fx::mailgen::for-error {stacktrace} {
 	"FX Internal Error" [clock seconds]
     Body {} {}
     + Context
-    + ""
+    +T "" [join $context \n]
     + StackTrace
     +T "" $stacktrace
     =T
@@ -73,6 +98,7 @@ proc ::fx::mailgen::for-error {stacktrace} {
 }
 
 proc ::fx::mailgen::for-limit {pinfo changes limit} {
+    debug.fx/mailgen {}
     set location [dict get $pinfo location]
     set project  [dict get $pinfo project]
 
@@ -239,7 +265,12 @@ proc ::fx::mailgen::checkin {m} {
     } else {
 	foreach action [lsort -dict [dict keys $changes]] {
 	    +T $action ""
-	    foreach path [lsort -dict [dict get $changes $action]] {
+	    set paths [lsort -dict [dict get $changes $action]]
+	    if {[llength $paths] > 5} {
+		set paths [lrange $paths 0 4]
+		lappend paths "(truncated)"
+	    }
+	    foreach path $paths {
 		+T "" $path
 	    }
 	}
