@@ -171,7 +171,7 @@ proc ::fx::manifest::parse {manifest args} {
 		# cache).
 	    }
 	    L {
-		set m(title) [string trim $data]
+		set m(title) [Dearmor [string trim $data]]
 		set m(type) wiki
 		debug.fx/manifest {-- =wiki ==> $m(title)}
 	    }
