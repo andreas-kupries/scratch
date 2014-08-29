@@ -182,7 +182,7 @@ proc ::fx::util::LCP {list} {
 
 proc ::fx::util::open {path} {
     file mkdir [file dirname $path]
-    return [open $path w]
+    return [::open $path w]
 }
 
 # # ## ### ##### ######## ############# #####################
