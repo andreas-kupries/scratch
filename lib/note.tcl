@@ -513,7 +513,7 @@ proc ::fx::note::mail-config-export {config} {
     }
 
     # Write the assembled configuration
-    set chan [open [$config @output] w]
+    set chan [util open [$config @output]]
     foreach item $data {
 	puts $chan [linsert $item 0 mail-config]
     }
@@ -804,7 +804,7 @@ proc ::fx::note::route-export {config} {
     debug.fx/note {}
     fossil show-repository-location
 
-    set chan [open [$config @output] w]
+    set chan [util open [$config @output]]
     dict for {event routes} [RouteMap $config] {
 	foreach route $routes {
 	    lassign $route static destination

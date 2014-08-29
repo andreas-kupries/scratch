@@ -236,7 +236,7 @@ proc ::fx::enum::export {config} {
 	lappend data end
     }
 
-    set    chan [open [$config @output] w]
+    set    chan [util open [$config @output]]
     puts  $chan [join $data \n]
     close $chan
     return

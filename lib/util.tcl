@@ -36,7 +36,7 @@ namespace eval ::fx {
 
 namespace eval ::fx::util {
     namespace export padr padl dictsort reflow indent undent \
-	max-length strip-prefix
+	max-length strip-prefix open
     namespace ensemble create
 }
 
@@ -176,6 +176,13 @@ proc ::fx::util::LCP {list} {
 	if {[incr i] > $n} {break}
     }
     return $prefix
+}
+
+# # ## ### ##### ######## ############# #####################
+
+proc ::fx::util::open {path} {
+    file mkdir [file dirname $path]
+    return [::open $path w]
 }
 
 # # ## ### ##### ######## ############# #####################

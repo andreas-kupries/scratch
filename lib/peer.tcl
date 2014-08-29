@@ -404,7 +404,7 @@ proc ::fx::peer::export {config} {
 	lappend data [::list git $url $last]
     }
 
-    set    chan [open [$config @output] w]
+    set    chan [util open [$config @output]]
     puts  $chan [join $data \n]
     close $chan
     return
