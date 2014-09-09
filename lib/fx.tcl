@@ -16,7 +16,7 @@
 # Meta require     fx::fossil
 # Meta require     fx::config
 # Meta require     fx::enum
-## Meta require     fx::report
+# Meta require     fx::report
 # Meta subject     ?
 # Meta summary     ?
 # @@ Meta End
@@ -46,7 +46,6 @@ namespace eval fx {
 }
 
 # # ## ### ##### ######## ############# ######################
-## TODO: enable command history.
 
 proc ::fx::main {argv} {
     debug.fx {}
@@ -110,6 +109,7 @@ proc ::fx::no-search {} {
     }
 }
 
+# NOTE: call, vt, sequence, exclude - Possible convenience cmds for Cmdr.
 proc ::fx::call {p args} {
     lambda {p args} {
 	package require fx::$p
@@ -657,6 +657,32 @@ cmdr create fx::fx [file tail $::argv0] {
     ## easier to write by a human being. Also nicer table output, and
     ## structured output.
 
+    # Components:
+    # - name (aka title)
+    # - sql (select statement)              -- should have a template to use
+    # - color key (map: #rrggbb => string)  -- should have a template
+    # Note ! The color key is an optional part of a report's definition.
+    #
+    # Templates
+    # - color key
+    # - sql
+    #
+    # Operations
+    # - template-spec   - Set sql template
+    # - template-colors - Set color key template
+    # - list            - List (table, raw, json)
+    # - add             - Create name ?sql?
+    # - rename          - Change name
+    # - set             - Change sql
+    # - set-colors      - Change colors
+    # - delete          - Delete name|id...
+    # - export          - Export ?name|id...? - Restricted export, sql or color
+    # - import          - Import file
+    # - run             - Run name
+    # - run             - Run <sql>|<sqlfile>  (create + run + delete, tmp-name)
+    # - edit            - Edit name   => auto-calls editor, (export + edit + import, tmp-file)
+    # -                 -  restricted => sql, or colors
+
     officer report {
 	description {
 	    Management of a fossil repositories' set of ticket reports.
@@ -666,6 +692,34 @@ cmdr create fx::fx [file tail $::argv0] {
 	    use .repository
 	}
 
+	common .spec {
+	    input spec {
+		Report specification.
+		Defaults to reading it from stdin.
+	    } {
+		optional
+		validate str
+		generate [lambda p { read stdin }]
+	    }
+	}
+
+	common .colorkey {
+	    input colors {
+		Color key
+		Defaults to reading it from stdin.
+	    } {
+		optional
+		validate str
+		generate [lambda p { read stdin }]
+	    }
+	}
+
+	common .only {
+	    option only {
+		Restrict the operation to either specification (sql) or color key (color).
+	    } { validate [fx::vt report-restriction] }
+	}
+
 	# execute a report ... proper matrix output, json output, nested tcl
 	# execute a temp report => enter a report, execute it, delete it.
 	# see if we can get reports parameterized. at least from fx.
@@ -673,8 +727,18 @@ cmdr create fx::fx [file tail $::argv0] {
 	private list {
 	    section Reporting
 	    description {
-		List all reports defined in the repository.
+		List all reports found in the repository.
 	    }
+	    option json {
+		Print the data formatted as JSON array.
+		Cannot be used together with --raw
+	    } { presence ; when-set [exclude raw] }
+	    option raw {
+		Print the raw names.
+		Cannot be used together with --json
+	    } { presence ; when-set [exclude json] }
+
+	    # options: --json, --raw
 	} [fx::call report list]
 	default
 
@@ -685,7 +749,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	    # ... ?owner?, title, (cols, sql)
 	    option owner {
-		Owner of the report.
+		Specify the owner of the report.
 		Defaults to the unix user running the command.
 	    } {
 		validate str
@@ -696,27 +760,92 @@ cmdr create fx::fx [file tail $::argv0] {
 	    } {
 		validate str
 	    }
-	    input spec {
-		Report specification.
-		Defaults to reading it from stdin.
-	    } {
-		optional
-		validate str
-		generate [lambda p { read stdin }]
-	    }
+	    use .spec
 	} [fx::call report add]
 
-	private get {
+	private rename {
 	    section Reporting
 	    description {
-		Retrieve the specified report definition.
+		Rename the specified report.
 	    }
 	    input id {
-		Id or name of the report to retrieve.
+		Id or name of the report to rename.
 	    } {
 		validate [fx::vt report-id]
 	    }
-	} [fx::call report get]
+	    input newname {
+		New name of the report.
+	    } {
+		validate [fx::vt not-report-id]
+	    }
+	} [fx::call report rename]
+
+	private set {
+	    section Reporting
+	    description {
+		Change the definition of the specified report.
+	    }
+	    input id {
+		Id or name of the report to change.
+	    } {
+		validate [fx::vt report-id]
+	    }
+	    use .spec
+	} [fx::call report redefine]
+	alias redefine
+
+	private set-colors {
+	    section Reporting
+	    description {
+		Change the color key of the specified report.
+	    }
+	    input id {
+		Id or name of the report to change.
+	    } {
+		validate [fx::vt report-id]
+	    }
+	    use .colorkey
+	} [fx::call report set-colors]
+
+	private export {
+	    section Reporting
+	    description {
+		Export one or more reports into a file. Defaults to all.
+	    }
+	    use .export
+	    use .only
+	    input id {
+		Id or name of the report(s) to export.
+	    } {
+		optional ; list
+		validate [fx::vt report-id]
+	    }
+	} [fx::call report export]
+
+	private import {
+	    section Reporting
+	    description {
+		Import report definitions from a file.
+	    }
+	    use .import
+	} [fx::call report import]
+
+	private edit {
+	    section Reporting
+	    description {
+		Interactively edit the specified report using the
+		application specified by the environment variable
+		EDITOR.
+	    }
+	    use .only
+	    input id {
+		Id or name of the report to edit.
+		If not specified start from the current templates.
+	    } {
+		optional
+		validate [fx::vt report-id]
+	    }
+	} [fx::call report edit]
 
 	private delete {
 	    section Reporting
@@ -724,12 +853,44 @@ cmdr create fx::fx [file tail $::argv0] {
 		Delete the specified report definition.
 	    }
 	    input id {
-		Id or name of the report to delete.
+		Id or name of the report(s) to delete.
 	    } {
+		list
 		validate [fx::vt report-id]
 	    }
 	} [fx::call report delete]
+
+	private run {
+	    section Reporting
+	    description {
+		Execute the specified report definition and print the results to stdout.
+		Without a specification read the definition from stdin for a temporary report.
+	    }
+	    input id {
+		Id or name of the report to run.
+	    } {
+		optional
+		validate [fx::vt report-id]
+	    }
+	} [fx::call report run]
+
+	private template-colors {
+	    section Reporting
+	    description {
+		Set the global color key template.
+	    }
+	    use .colorkey
+	} [fx::call report template-set-colors]
+
+	private template-spec {
+	    section Reporting
+	    description {
+		Set the global sql template
+	    }
+	    use .spec
+	} [fx::call report template-set-sql]
     }
+    alias reports = report list
 
     # # ## ### ##### ######## ############# ######################
     ## Management of mappings (used both internally and by the
@@ -1671,8 +1832,6 @@ cmdr create fx::fx [file tail $::argv0] {
     # Shortcut
     alias ticket-fields = note route field list
     # aka                 note route fields
-
-    # TODO - mgmt of mirrors, fossil and git (export)
 }
 
 # # ## ### ##### ######## ############# ######################
