@@ -216,7 +216,7 @@ cmdr create fx::fx [file tail $::argv0] {
     common .repository {
 	state repository-active {
 	    This hidden field can be used by other fields to disable
-	    the search for a local fossil rpeository. This is for use
+	    the search for a local fossil repository. This is for use
 	    by all commands which have global and local operation modes.
 	} {
 	    immediate

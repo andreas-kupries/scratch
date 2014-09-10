@@ -23,6 +23,7 @@ package require cmdr::color
 debug header {[::cmdr color {black bg-cyan} [clock format [clock seconds]]] }
 
 package require fx
+package require fx::atexit
 
 # # ## ### ##### ######## ############# ######################
 
@@ -51,8 +52,14 @@ if {[info exists env(FX_DEBUG)]} {
 
 # # ## ### ##### ######## ############# ######################
 ## Invoke the application code.
+## Should possibly catch signals as well.
 
-exit [fx main $argv]
+set status 1
+try {
+    set status [fx main $argv]
+} finally {
+    exit $status
+}
 
 # # ## ### ##### ######## ############# ######################
 exit

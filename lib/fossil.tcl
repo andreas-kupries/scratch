@@ -20,6 +20,7 @@ package require debug
 package require debug::caller
 
 package require fx::table
+package require fx::atexit
 
 debug level  fx/fossil
 debug prefix fx/fossil {[debug caller] | }
@@ -45,6 +46,7 @@ namespace eval ::fx::fossil {
     namespace ensemble create
 
     namespace import ::cmdr::color
+    namespace import ::fx::atexit
     namespace import ::fx::table::do
     rename do table
 
@@ -215,7 +217,9 @@ proc ::fx::fossil::global {args} {
     rename ::fx::fossil::global {}
 
     # And replace it with the database command.
-    sqlite3 ::fx::fossil::global [global-location]
+    set location [global-location]
+    sqlite3 ::fx::fossil::global $location
+    atexit add [list ::fx::fossil::GlobalClose $location]
 
     if {![llength $args]} return
 
@@ -223,13 +227,19 @@ proc ::fx::fossil::global {args} {
     try {
 	set r [uplevel 1 [list ::fx::fossil::global {*}$args]]
     } on return {e o} {
-	# tricky code here. We have rethrow with -code return to keep
-	# the semantics in case we are called with the 'transaction'
-	# method here, which passes a 'return' of the script as its
-	# own 'return', and we must do the same here.
+	# tricky code here. We have to rethrow with -code return to
+	# keep the semantics in case we are called with the
+	# 'transaction' method here, which passes a 'return' of the
+	# script as its own 'return', and we must do the same here.
 	return {*}$o -code return $e
     }
     return $r
+}
+
+proc ::fx::fossil::GlobalClose {location} {
+    debug.fx/fossil {AtExit}
+    ::fx::fossil::global close
+    return
 }
 
 proc ::fx::fossil::repository {args} {
@@ -267,7 +277,14 @@ proc ::fx::fossil::repository-open {p} {
     }
 
     sqlite3 ::fx::fossil::repository $location
+    atexit add [list ::fx::fossil::RepositoryClose $location]
     return  ::fx::fossil::repository
+}
+
+proc ::fx::fossil::RepositoryClose {location} {
+    debug.fx/fossil {AtExit}
+    ::fx::fossil::repository close
+    return
 }
 
 # # ## ### ##### ######## ############# ######################
@@ -384,7 +401,7 @@ proc ::fx::fossil::repository-find {p} {
     set location [file normalize $location]
     debug.fx/fossil {normalized as $location}
 
-    rename CK {}
+    CK close
 
     set-repository-location $location checkout
     debug.fx/fossil {done ==> checkout $location}
