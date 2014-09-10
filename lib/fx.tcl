@@ -716,8 +716,9 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	common .only {
 	    option only {
-		Restrict the operation to either specification (sql) or color key (color).
-	    } { validate [fx::vt report-restriction] }
+		Restrict the operation to a part of the report, i.e.
+		either specification (sql) or color key (color).
+	    } { validate [fx::vt report-part] }
 	}
 
 	# execute a report ... proper matrix output, json output, nested tcl
