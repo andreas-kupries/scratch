@@ -57,12 +57,12 @@ proc ::fx::mailer::test-address {config} {
 
     puts "Decoding ($address) :="
     [table t {Part Value Notes} {
+	set address [string map {{;} {,}} $address]
 	set first 1
 	foreach parts [mime::parseaddress $address] {
 	    if {!$first} { $t add ==== ===== ===== }
 	    set first 0
 
-	    puts X|$parts
 	    # set parts [lindex 0]
 	    set hasdomain 0
 	    set haslocal  0
