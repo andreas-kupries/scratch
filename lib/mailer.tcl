@@ -14,6 +14,7 @@
 # @@ Meta End
 
 package require Tcl 8.5
+package require cmdr::color
 package require tls
 package require smtp
 package require mime
@@ -38,6 +39,7 @@ namespace eval ::fx::mailer {
 	drop-address
     namespace ensemble create
 
+    namespace import ::cmdr::color
     namespace import ::fx::fossil
     namespace import ::fx::mailgen
     namespace import ::fx::mgr::config
@@ -53,40 +55,54 @@ proc ::fx::mailer::test-address {config} {
     debug.fx/mailer {}
     set address [$config @address]
 
-    set parts [lindex [mime::parseaddress $address] 0]
-    set hasdomain 0
-    set haslocal  0
-
     puts "Decoding ($address) :="
     [table t {Part Value Notes} {
-	foreach k [lsort -dict [dict keys $parts]] {
-	    set v [dict get $parts $k]
-	    set notes {}
-	    switch -exact $k {
-		domain -
-		local {
-		    incr has$k
-		    if {$v eq {}} {
-			lappend notes {** Empty **}
-		    }
-		}
-		default {
-		    # Report on the missing pieces. Depends on the
-		    # parts sorted lexicographically (see lsort above)
-		    # to place the fakes at the correct locations.
+	set first 1
+	foreach parts [mime::parseaddress $address] {
+	    if {!$first} { $t add ==== ===== ===== }
+	    set first 0
 
-		    if {([string compare $k domain] > 0) && !$hasdomain} {
-			$t add $k {} {** Missing **}
-			incr hasdomain
+	    puts X|$parts
+	    # set parts [lindex 0]
+	    set hasdomain 0
+	    set haslocal  0
+
+	    foreach k [lsort -dict [dict keys $parts]] {
+		set v [dict get $parts $k]
+		set notes {}
+		switch -exact $k {
+		    domain -
+		    local {
+			incr has$k
+			if {$v eq {}} {
+			    lappend notes [color note {** Empty **}]
+			}
 		    }
-		    if {([string compare $k local] > 0) && !$haslocal} {
-			$t add $k {} {** Missing **}
-			incr haslocal
+		    error {
+			if {$v ne {}} {
+			    set k [color bad $k]
+			    set v [color bad $v]
+			}
+		    }
+		    default {
+			# Report on the missing pieces. Depends on the
+			# parts sorted lexicographically (see lsort above)
+			# to place the fakes at the correct locations.
+
+			if {([string compare $k domain] > 0) && !$hasdomain} {
+			    $t add [color bad $k] {} [color bad {** Missing **}]
+			    incr hasdomain
+			}
+			if {([string compare $k local] > 0) && !$haslocal} {
+			    $t add [color bad $k] {} [color bad {** Missing **}]
+			    incr haslocal
+			}
 		    }
 		}
+		$t add $k $v [join $notes \n]
 	    }
-	    $t add $k $v [join $notes \n]
 	}
+
     }] show
     return
 }
