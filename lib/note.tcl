@@ -1234,29 +1234,35 @@ proc ::fx::note::Receivers {routes manifest} {
     return $recv
 }
 
-proc ::fx::note::+R {addr} {
+proc ::fx::note::+R {addrs} {
     debug.fx/note {}
     upvar 1 recv recv
-    if {$addr eq {}} return
-    if {![mailer good-address $addr]} {
-	debug.fx/note {rejected}
-	return
+    if {![llength $addrs]} return
+    foreach addr [split $addrs {,;}] {
+	set addr [string trim $addr]
+	if {![mailer good-address $addr]} {
+	    debug.fx/note {rejected $addr}
+	    return
+	}
+	debug.fx/note {added    $addr}
+	lappend recv $addr
     }
-    debug.fx/note {added}
-    lappend recv $addr
     return
 }
 
-proc ::fx::note::-R {addr} {
+proc ::fx::note::-R {addrs} {
     debug.fx/note {}
     upvar 1 recv recv
-    if {$addr eq {}} return
-    if {![mailer good-address $addr]} {
-	debug.fx/note {rejected}
-	return
+    if {![llength $addrs]} return
+    foreach addr [split $addrs {,;}] {
+	set addr [string trim $addr]
+	if {![mailer good-address $addr]} {
+	    debug.fx/note {rejected $addr}
+	    continue
+	}
+	debug.fx/note {remove   $addr}
+	set recv [mailer drop-address $addr $recv]
     }
-    debug.fx/note {remove}
-    set recv [mailer drop-address $addr $recv]
     return
 }
 
