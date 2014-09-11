@@ -1239,6 +1239,7 @@ proc ::fx::note::+R {addrs} {
     upvar 1 recv recv
     if {![llength $addrs]} return
     foreach addr [split $addrs {,;}] {
+	set addr [string trim $addr]
 	if {![mailer good-address $addr]} {
 	    debug.fx/note {rejected $addr}
 	    return
@@ -1254,6 +1255,7 @@ proc ::fx::note::-R {addrs} {
     upvar 1 recv recv
     if {![llength $addrs]} return
     foreach addr [split $addrs {,;}] {
+	set addr [string trim $addr]
 	if {![mailer good-address $addr]} {
 	    debug.fx/note {rejected $addr}
 	    continue
