@@ -148,6 +148,8 @@ proc ::fx::mailer::good-address {addr} {
     debug.fx/mailer {}
     set r [lindex [mime::parseaddress $addr] 0]
 
+    # TODO: Check how it looks with multiple addresses, and bad syntax.
+
     # Drop empty results. Drop results which are not full addresses
     # i.e. have missing or empty local and domain parts.
 
