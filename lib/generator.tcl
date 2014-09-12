@@ -20,6 +20,7 @@ package require clock::iso8601
 package require fx::fossil
 package require fx::manifest
 package require http
+package require html ;# We peek into the insides, using the entities variable.
 
 debug level  fx/mailgen
 debug prefix fx/mailgen {[debug caller] | }
@@ -44,13 +45,6 @@ namespace eval ::fx::mailgen {
 
     namespace import ::fx::fossil
     namespace import ::fx::manifest
-
-    # Limit for table fields in generated mail, and
-    # Limit marker to use when truncating.
-    # TODO: Make them configurable
-    variable flimit   2048
-    variable flsuffix "\n...((truncated))"
-    variable context  {}
 }
 
 # # ## ### ##### ######## ############# ######################
@@ -600,7 +594,7 @@ proc ::fx::mailgen::=T {} {
 
 proc ::fx::mailgen::+ {line} {
     upvar 1 lines lines
-    lappend lines $line
+    lappend lines [Unentify $line]
     return
 }
 
@@ -611,6 +605,12 @@ proc ::fx::mailgen::Subject {{prefix {}}} {
     # Reduce to first line.
     set subj [lindex [split $ecomment \n] 0]
     return "\[$project\] $prefix$subj"
+}
+
+proc ::fx::mailgen::Unentify {text} {
+    # Convert HTML artifacts (entities) into regular characters.
+    variable emap
+    return [string map $emap $text]
 }
 
 proc ::fx::mailgen::Headers {project location subject epoch} {
@@ -666,6 +666,27 @@ proc ::fx::mailgen::Reformat {s} {
     # done
     return [string trimright $s]
 }
+
+# # ## ### ##### ######## ############# ######################
+
+namespace eval ::fx::mailgen {
+    # Limit for table fields in generated mail, and
+    # Limit marker to use when truncating.
+    # TODO: Make them configurable
+    variable flimit   2048
+    variable flsuffix "\n...((truncated))"
+    variable context  {}
+    variable emap     {}
+}
+
+apply {{} {
+    # Invert the mapping from chars to entities
+    variable emap {}
+    variable ::html::entities
+    foreach {c e} $entities {
+	lappend emap $e $c
+    }
+} ::fx::mailgen}
 
 # # ## ### ##### ######## ############# ######################
 package provide fx::mailgen 0
