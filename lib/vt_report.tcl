@@ -41,15 +41,15 @@ namespace eval ::fx::validate::report-id {
 proc ::fx::validate::report-id::default  {p}   { return {} }
 proc ::fx::validate::report-id::release  {p x} { return }
 proc ::fx::validate::report-id::validate {p x} {
-    set matches [fossil repository onecolumn {
-	SELECT count(*)
+    set matches [fossil repository eval {
+	SELECT rn
 	FROM reportfmt
 	WHERE rn    = :x
 	OR    title = :x
     }]
 
-    if {$matches == 1} {
-	return $x
+    if {[llength $matches] == 1} {
+	return [lindex $matches 0]
     }
     fail-unknown-thing $p REPORT-ID "report name or id" $x
 }

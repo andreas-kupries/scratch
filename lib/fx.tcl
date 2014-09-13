@@ -683,6 +683,9 @@ cmdr create fx::fx [file tail $::argv0] {
     # - edit            - Edit name   => auto-calls editor, (export + edit + import, tmp-file)
     # -                 -  restricted => sql, or colors
 
+    # TODO: change report ownership !?
+    # TODO: find new/modified reports since last check.
+
     officer report {
 	description {
 	    Management of a fossil repositories' set of ticket reports.
@@ -733,13 +736,11 @@ cmdr create fx::fx [file tail $::argv0] {
 	    option json {
 		Print the data formatted as JSON array.
 		Cannot be used together with --raw
-	    } { presence ; when-set [exclude raw] }
+	    } { presence ; when-set [fx::exclude raw] }
 	    option raw {
 		Print the raw names.
 		Cannot be used together with --json
-	    } { presence ; when-set [exclude json] }
-
-	    # options: --json, --raw
+	    } { presence ; when-set [fx::exclude json] }
 	} [fx::call report list]
 	default
 
@@ -753,6 +754,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		Specify the owner of the report.
 		Defaults to the unix user running the command.
 	    } {
+		alias o
 		validate str
 		default [lambda p { set ::tcl_platform(user) }]
 	    }
