@@ -626,6 +626,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		given text.
 	    }
 	    use .setting
+	    use .global
 	    input value {
 		The new value of the configuration setting.
 	    } {}
@@ -639,6 +640,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		This sets it back to the system default.
 	    }
 	    use .repository
+	    use .global
 	    use .setting-list
 	} [fx::call config unset]
 
