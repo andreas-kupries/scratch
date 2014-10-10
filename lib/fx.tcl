@@ -414,6 +414,15 @@ cmdr create fx::fx [file tail $::argv0] {
 	use .syncdir-hidden-validation
     }
 
+    common .global {
+	option global {
+	    Operate on the global configuration.
+	} {
+	    alias G ; presence
+	    when-set [::fx::no-search]
+	}
+    }
+
     # # ## ### ##### ######## ############# ######################
 
     private version {
@@ -1211,15 +1220,6 @@ cmdr create fx::fx [file tail $::argv0] {
 	officer config {
 	    description {
 		Manage the mail setup for notification emails.
-	    }
-
-	    common .global {
-		option global {
-		    Operate on the global configuration.
-		} {
-		    alias G ; presence
-		    when-set [::fx::no-search]
-		}
 	    }
 
 	    common .global-local {

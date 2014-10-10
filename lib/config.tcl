@@ -112,11 +112,11 @@ proc ::fx::config::set {config} {
     # (local, global, default|error).
     if {$global} {
 	config set-global $name $value
-	set current [config get-global $name]
+	::set current [config get-global $name]
     } else {
 	fossil show-repository-location
 	config set-local $name $value
-	set current [config get-local $name]
+	::set current [config get-local $name]
     }
 
     puts '$current'
@@ -140,10 +140,10 @@ proc ::fx::config::unset {config} {
 	# based on the user's choice, instead of the regular heuristics
 	# (local, global, default|error).
 	if {$global} {
-	    config unset-global $name $value
+	    config unset-global $name
 	} else {
 	    fossil show-repository-location
-	    config unset-local $name $value
+	    config unset-local $name
 	}
 
 	puts ""
