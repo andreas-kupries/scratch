@@ -33,9 +33,9 @@ package require fx::table
 
 namespace eval ::fx::report {
     namespace export \
-	add delete rename redefine set-colors \
-	list export import edit run \
-	template-set-sql template-set-colors
+	add delete rename set-sql set-colors \
+	set-owner copy show listing export import \
+	edit run template-set-sql template-set-colors
     namespace ensemble create
 
     namespace import ::cmdr::color
@@ -65,7 +65,7 @@ proc ::fx::report::add {config} {
     puts -nonewline "Add new report [color name $title] ... "
 
     # TODO: Normalization and validation of the sql-code
-    # TODO: Use procedure, re-usable in import, redefine, edit, etc.
+    # TODO: Use procedure, re-usable in import, set-sql, edit, etc.
     #
     # Trial compilation:
     # - must be read-only (only SELECT allowed)
@@ -83,10 +83,11 @@ proc ::fx::report::add {config} {
     #   fx_*, ticket ticketchng blob filename mlink plink
     #   event tag tagxref
 
+    set now [clock seconds]
     fossil repository eval {
 	INSERT
 	INTO reportfmt
-	VALUES (NULL,:owner,:title,now(),'',:spec)
+	VALUES (NULL,:owner,:title,:now,'',:spec)
     }
 
     # f r last_insert_rowid => print number.
@@ -112,6 +113,35 @@ proc ::fx::report::delete {config} {
     return
 }
 
+proc ::fx::report::copy {config} {
+    # @id (rn), @newname
+    fossil show-repository-location
+
+    set rn    [$config @id]
+    set owner [$config @owner]
+    set title [$config @newname]
+    set now   [clock seconds]
+
+    puts -nonewline "Copy report [color name $rn] to [color name $title] ... "
+
+    fossil repository transaction {
+	lassign [fossil repository eval {
+	    SELECT cols, sqlcode
+	    FROM reportfmt
+	    WHERE rn = :rn
+	}] colors sqlcode
+
+	fossil repository eval {
+	    INSERT
+	    INTO reportfmt
+	    VALUES (NULL,:owner,:title,:now,:colors,:sqlcode)
+	}
+    }
+
+    puts [color good OK]
+    return
+}
+
 proc ::fx::report::rename {config} {
     # @id (rn), @newname
     fossil show-repository-location
@@ -130,16 +160,20 @@ proc ::fx::report::rename {config} {
     return
 }
 
-proc ::fx::report::redefine {config} {
+proc ::fx::report::set-sql {config} {
     fossil show-repository-location
 
     set rn   [$config @id]
     set spec [$config @spec]
+    set now  [clock seconds]
+
+    # TODO : Validate new spec, see 'add'.
 
     puts -nonewline "Redefine report [color name $rn] definition ... "
     fossil repository eval {
 	UPDATE reportfmt
-	SET sqlcode = :spec
+	SET sqlcode = :spec,
+	    mtime   = :now
 	WHERE rn = :rn
     }
 
@@ -152,11 +186,13 @@ proc ::fx::report::set-colors {config} {
 
     set rn     [$config @id]
     set colors [$config @colors]
+    set now    [clock seconds]
 
     puts -nonewline "Redefine report [color name $rn] colors ... "
     fossil repository eval {
 	UPDATE reportfmt
-	SET cols = :colors
+	SET cols  = :colors,
+	    mtime = :now
 	WHERE rn = :rn
     }
 
@@ -164,7 +200,96 @@ proc ::fx::report::set-colors {config} {
     return
 }
 
-proc ::fx::report::list {config} {
+proc ::fx::report::set-owner {config} {
+    fossil show-repository-location
+
+    set rn    [$config @id]
+    set owner [$config @owner]
+    set now   [clock seconds]
+
+    puts -nonewline "Redefine report [color name $rn] owner ... "
+    fossil repository eval {
+	UPDATE reportfmt
+	SET owner = :owner,
+	    mtime = :now
+	WHERE rn = :rn
+    }
+
+    puts [color good OK]
+    return
+}
+
+proc ::fx::report::show {config} {
+    set rn    [$config @id]
+    set parts [$config @only]
+
+    lassign [fossil repository eval {
+	SELECT owner, title, datetime(mtime,'unixepoch'), cols, sqlcode
+	FROM reportfmt
+	WHERE rn = :rn
+    }] owner title mtime colors sqlcode
+
+    if {[$config @json]} {
+	switch -- $parts {
+	    sql {
+		puts [json::write string $sqlcode]
+	    }
+	    color {
+		puts [json::write string $colors]
+	    }
+	    all {
+		puts [json::write object \
+			  id     $rn \
+			  owner  [json::write string $owner]  \
+			  title  [json::write string $title]  \
+			  mtime  [json::write string $mtime]  \
+			  colors [json::write string $colors] \
+			  sql    [json::write string $sqlcode]]
+	    }
+	}
+    } elseif {[$config @raw]} {
+	switch -- $parts {
+	    sql {
+		puts $sqlcode
+	    }
+	    color {
+		puts $colors
+	    }
+	    all {
+		puts $owner
+		puts $title
+		puts $mtime
+		puts --
+		puts $colors
+		puts --
+		puts $sqlcode
+	    }
+	}
+    } else {
+	fossil show-repository-location
+	puts "Report [color name $rn] ... "
+	[table t {Key Value} {
+	    if {$parts eq "all"} {
+		$t add Owner      $owner
+		$t add Title      [color name $title]
+		$t add Created    $mtime
+		$t add ---------- -------------------
+	    }
+	    if {$parts in {all color}} {
+		$t add Color-Key  $colors
+	    }
+	    if {$parts eq "all"} {
+		$t add ---------- -------------------
+	    }
+	    if {$parts in {all sql}} {
+		$t add Definition $sqlcode
+	    }
+	}] show
+    }
+    return
+}
+
+proc ::fx::report::listing {config} {
     # @json, @raw
 
     set defs [fossil repository eval {
@@ -181,7 +306,7 @@ proc ::fx::report::list {config} {
 		     id    $id \
 		     owner [json::write string $owner] \
 		     title [json::write string $title] \
-		     mtime [json::write string $mtime]
+		     mtime [json::write string $mtime]]
 	}
 	puts [json::write array {*}$tmp]
 

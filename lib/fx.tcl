@@ -741,8 +741,19 @@ cmdr create fx::fx [file tail $::argv0] {
 		Print the raw names.
 		Cannot be used together with --json
 	    } { presence ; when-set [fx::exclude json] }
-	} [fx::call report list]
+	} [fx::call report listing]
 	default
+
+	common .owner {
+	    option owner {
+		Specify the owner of the report.
+		Defaults to the unix user running the command.
+	    } {
+		alias o
+		validate str
+		generate [lambda p { set ::tcl_platform(user) }]
+	    }
+	}
 
 	private add {
 	    section Reporting
@@ -750,18 +761,12 @@ cmdr create fx::fx [file tail $::argv0] {
 		Add a report definition to the repository.
 	    }
 	    # ... ?owner?, title, (cols, sql)
-	    option owner {
-		Specify the owner of the report.
-		Defaults to the unix user running the command.
-	    } {
-		alias o
-		validate str
-		default [lambda p { set ::tcl_platform(user) }]
-	    }
+	    use .owner
 	    input title {
 		The report's name.
 	    } {
 		validate str
+		# TODO? vt str --> [fx::vt not-report-id]
 	    }
 	    use .spec
 	} [fx::call report add]
@@ -782,6 +787,54 @@ cmdr create fx::fx [file tail $::argv0] {
 		validate [fx::vt not-report-id]
 	    }
 	} [fx::call report rename]
+	alias move
+
+	private copy {
+	    section Reporting
+	    description {
+		Copy the specified report.
+	    }
+
+	    # TODO: copy only ... that requires an existing report.
+	    # Full copy creates a new report.
+
+	    use .owner
+	    input id {
+		Id or name of the report to copy.
+	    } {
+		validate [fx::vt report-id]
+	    }
+	    input newname {
+		Name of the copy.
+	    } {
+		validate [fx::vt not-report-id]
+	    }
+	} [fx::call report copy]
+	alias dup
+
+	private show {
+	    section Reporting
+	    description {
+		Show the details (sql, color key, etc)
+		of the specified report.
+	    }
+
+	    use .only
+	    option json {
+		Print the data formatted as JSON array.
+		Cannot be used together with --raw
+	    } { presence ; when-set [fx::exclude raw] }
+	    option raw {
+		Print the raw data.
+		Cannot be used together with --json
+	    } { presence ; when-set [fx::exclude json] }
+
+	    input id {
+		Id or name of the report to show.
+	    } {
+		validate [fx::vt report-id]
+	    }
+	} [fx::call report show]
 
 	private set {
 	    section Reporting
@@ -794,7 +847,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		validate [fx::vt report-id]
 	    }
 	    use .spec
-	} [fx::call report redefine]
+	} [fx::call report set-sql]
 	alias redefine
 
 	private set-colors {
@@ -809,6 +862,23 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	    use .colorkey
 	} [fx::call report set-colors]
+
+	private set-owner {
+	    section Reporting
+	    description {
+		Change the owner of the specified report.
+	    }
+	    input id {
+		Id or name of the report to change.
+	    } {
+		validate [fx::vt report-id]
+	    }
+	    input owner {
+		The name of the new owner.
+	    } {
+		validate str
+	    }
+	} [fx::call report set-owner]
 
 	private export {
 	    section Reporting
