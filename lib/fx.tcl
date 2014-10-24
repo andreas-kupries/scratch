@@ -336,6 +336,24 @@ cmdr create fx::fx [file tail $::argv0] {
 	}
     }
 
+    common .export-fd {
+	input output {
+	    The path of the file or directory to save the exported data into.
+	} {
+	    # Controlled by @exploded.
+	    # TODO Cmdr -- Helper code for this type of conditional switch
+	    # between different validation types. Similar for enum conditional.
+	    validate [lambda {cmd p args} {
+		if {[$p config @exploded]} {
+		    # TODO: create wdirectory VT
+		    cmdr validate rwdirectory $cmd $p {*}$args
+		} else {
+		    cmdr validate wfile $cmd $p {*}$args
+		}
+	    }]
+	}
+    }
+
     common .import {
 	input input {
 	    The path of the file to read the data from.
@@ -885,7 +903,11 @@ cmdr create fx::fx [file tail $::argv0] {
 	    description {
 		Export one or more reports into a file. Defaults to all.
 	    }
-	    use .export
+	    option exploded {
+		When specified export the named reports into a directory
+		hierarchy with all parts found in separate files.
+	    } { presence }
+	    use .export-fd
 	    use .only
 	    input id {
 		Id or name of the report(s) to export.

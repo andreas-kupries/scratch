@@ -36,7 +36,7 @@ namespace eval ::fx::fossil {
 	c_show_repository c_set_repository c_reset_repository \
 	c_default_repository test-tags test-branch test-last-uuid \
 	branch-of changeset date-of last-uuid reveal user-info \
-	users user-config get-manifest fx-tables fx-maps \
+	users user-config get-manifest fx-tables fx-maps fx-reports \
 	fx-map-keys fx-map-get fx-enums fx-enum-items ticket-title \
 	ticket-fields global global-location show-global-location \
 	repository repository-location show-repository-location \
@@ -471,6 +471,14 @@ proc ::fx::fossil::fx-maps {} {
 	lappend maps $map
     }
     return $maps
+}
+
+proc ::fx::fossil::fx-reports {} {
+    debug.fx/fossil {}
+    return [repository eval {
+	SELECT rn FROM reportfmt
+	ORDER BY rn
+    }]
 }
 
 proc ::fx::fossil::fx-map-keys {table} {

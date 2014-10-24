@@ -26,7 +26,7 @@ package require json::write
 package require fx::fossil
 #package require fx::mgr::report
 package require fx::table
-#package require fx::util
+package require fx::util
 #package require fx::validate::report
 
 # # ## ### ##### ######## ############# ######################
@@ -40,7 +40,7 @@ namespace eval ::fx::report {
 
     namespace import ::cmdr::color
     namespace import ::fx::fossil
-#     namespace import ::fx::util
+    namespace import ::fx::util
 
     namespace import ::fx::table::do
     rename do table
@@ -329,6 +329,85 @@ proc ::fx::report::listing {config} {
 }
 
 proc ::fx::report::export {config} {
+    fossil show-repository-location
+
+    set parts [$config @only]
+
+    if {[$config @id set?]} {
+	set reports [$config @id]
+    } else {
+	set reports [fossil fx-reports]
+    }
+
+    if {[$config @exploded]} {
+	# @output is a directory.
+	# TODO: wpath validation ...
+	# cmdr --> conditional VT, boolean
+
+	foreach rn $reports {
+	    puts -nonewline "Exporting report [color name $rn] ... "
+
+	    lassign [fossil repository eval {
+		SELECT owner, title, cols, sqlcode
+		FROM reportfmt
+		WHERE rn = :rn
+	    }] owner title colors sqlcode
+
+	    # TODO: Use report title for report directory name, strip
+	    # non-alphanumeric parts, and add serial numbers where the
+	    # result is not unique.
+	    set dst [$config @output]/$rn
+
+	    file mkdir $dst
+
+	    fileutil::writeFile $dst/title $title\n
+	    fileutil::writeFile $dst/owner $owner\n
+
+	    if {$parts in {all color}} {
+		fileutil::writeFile $dst/colors $colors\n
+	    }
+	    if {$parts in {all sql}} {
+		fileutil::writeFile $dst/sql $sqlcode\n
+	    }
+
+	    puts [color good OK]
+	}
+	return
+    }
+
+    set chan [util open [$config @output]]
+    foreach rn $reports {
+	puts -nonewline "Exporting report [color name $rn] ... "
+
+	lassign [fossil repository eval {
+	    SELECT owner, title, cols, sqlcode
+	    FROM reportfmt
+	    WHERE rn = :rn
+	}] owner title colors sqlcode
+
+	puts $chan [list @@ -------------------------]
+	puts $chan [list @title $title]
+	puts $chan [list @owner $owner]
+	if {$parts in {all color}} {
+	    puts $chan @colors
+	    if {$colors ne {}} {
+		puts $chan $colors
+	    }
+	    puts $chan @/colors
+	}
+	if {$parts in {all sql}} {
+	    puts $chan @sql
+	    if {$sqlcode ne {}} {
+		puts $chan $sqlcode
+	    }
+	    puts $chan @/sql
+	}
+
+	puts [color good OK]
+    }
+
+    close $chan
+    return
 }
 
 proc ::fx::report::import {config} {
