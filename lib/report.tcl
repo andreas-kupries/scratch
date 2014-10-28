@@ -14,6 +14,7 @@
 # @@ Meta End
 
 package require Tcl 8.5
+package require sha1 2
 package require cmdr::color
 package require debug
 package require debug::caller
@@ -24,6 +25,7 @@ package require debug::caller
 package require json::write
 
 package require fx::fossil
+package require fx::mgr::config
 #package require fx::mgr::report
 package require fx::table
 package require fx::util
@@ -33,14 +35,15 @@ package require fx::util
 
 namespace eval ::fx::report {
     namespace export \
-	add delete rename set-sql set-colors \
-	set-owner copy show listing export import \
-	edit run template-set-sql template-set-colors
+	add delete rename copy show listing export import \
+	run edit set-sql set-colors set-owner \
+	template-set template-show template-reset
     namespace ensemble create
 
     namespace import ::cmdr::color
     namespace import ::fx::fossil
     namespace import ::fx::util
+    namespace import ::fx::mgr::config
 
     namespace import ::fx::table::do
     rename do table
@@ -55,7 +58,6 @@ debug prefix fx/report {[debug caller] | }
 
 proc ::fx::report::add {config} {
     # @owner, @title, @spec
-
     fossil show-repository-location
 
     set owner [$config @owner]
@@ -125,11 +127,7 @@ proc ::fx::report::copy {config} {
     puts -nonewline "Copy report [color name $rn] to [color name $title] ... "
 
     fossil repository transaction {
-	lassign [fossil repository eval {
-	    SELECT cols, sqlcode
-	    FROM reportfmt
-	    WHERE rn = :rn
-	}] colors sqlcode
+	lassign [Get $rn] _o _t _m colors sqlcode
 
 	fossil repository eval {
 	    INSERT
@@ -223,11 +221,7 @@ proc ::fx::report::show {config} {
     set rn    [$config @id]
     set parts [$config @only]
 
-    lassign [fossil repository eval {
-	SELECT owner, title, datetime(mtime,'unixepoch'), cols, sqlcode
-	FROM reportfmt
-	WHERE rn = :rn
-    }] owner title mtime colors sqlcode
+    lassign [Get $rn] owner title mtime colors sqlcode
 
     if {[$config @json]} {
 	switch -- $parts {
@@ -347,16 +341,15 @@ proc ::fx::report::export {config} {
 	foreach rn $reports {
 	    puts -nonewline "Exporting report [color name $rn] ... "
 
-	    lassign [fossil repository eval {
-		SELECT owner, title, cols, sqlcode
-		FROM reportfmt
-		WHERE rn = :rn
-	    }] owner title colors sqlcode
+	    lassign [Get $rn] owner title _m colors sqlcode
+
+	    regsub -all {[^[:alnum:]]} $title {} fname
+	    append fname .[sha1::sha1 -hex $title]
 
 	    # TODO: Use report title for report directory name, strip
 	    # non-alphanumeric parts, and add serial numbers where the
 	    # result is not unique.
-	    set dst [$config @output]/$rn
+	    set dst [$config @output]/$fname
 
 	    file mkdir $dst
 
@@ -379,29 +372,8 @@ proc ::fx::report::export {config} {
     foreach rn $reports {
 	puts -nonewline "Exporting report [color name $rn] ... "
 
-	lassign [fossil repository eval {
-	    SELECT owner, title, cols, sqlcode
-	    FROM reportfmt
-	    WHERE rn = :rn
-	}] owner title colors sqlcode
-
-	puts $chan [list @@ -------------------------]
-	puts $chan [list @title $title]
-	puts $chan [list @owner $owner]
-	if {$parts in {all color}} {
-	    puts $chan @colors
-	    if {$colors ne {}} {
-		puts $chan $colors
-	    }
-	    puts $chan @/colors
-	}
-	if {$parts in {all sql}} {
-	    puts $chan @sql
-	    if {$sqlcode ne {}} {
-		puts $chan $sqlcode
-	    }
-	    puts $chan @/sql
-	}
+	lassign [Get $rn] owner title _m colors sqlcode
+	Write $chan $parts $owner $title $colors $sqlcode
 
 	puts [color good OK]
     }
@@ -411,18 +383,327 @@ proc ::fx::report::export {config} {
 }
 
 proc ::fx::report::import {config} {
+    # Parameters
+    # @input - channel to read from
+    # @import-mode
+    # - replace all         = replace
+    # - replace on conflict = overwrite
+    # - ignore on conflict  = extend
+
+    fossil show-repository-location
+    Import [$config @input] [$config @import-mode]
+    return
 }
 
 proc ::fx::report::edit {config} {
+    # Parameters
+    # @id   - optional => use color/sql templates
+    # @only - which parts to edit.
+    #
+    # Workflow: Export to temp file, call, editor, import result back (replace on conflict).
+    # ... Ignore title on import ?
+    # ... Block import of multiple reports ?
+
+    set parts [$config @only]
+    set rn    [$config @id]
+    # TODO: import mode...
+
+    lassign [Get $rn] owner title _m colors sqlcode
+
+    set tmp [fileutil::tempfile fx_redit_]
+    set chan [open $tmp w]
+    Write $chan $parts
+    close $chan
+
+    # TODO exec $env(EDITOR) $tmp / default: vi?
+
+    Import [open $tmp r] overwrite
+
+    file delete $tmp
+    return
 }
 
 proc ::fx::report::run {config} {
+    # Parameters
+    # @id - optional. undefined => Take stdin.
+    # @raw, @json
+
 }
 
-proc ::fx::report::template-set-sql {config} {
+# # ## ### ##### ######## ############# ######################
+
+proc ::fx::report::template-set {config} {
+    fossil show-repository-location
+
+    switch -exact -- [$config @part] {
+	sql {
+	    set key  ticket-report-template
+	    set head "Setting report template ... "
+	}
+	color {
+	    set key  ticket-key-template
+	    set head "Setting color key template ... "
+	}
+    }
+
+    puts -nonewline $head
+    config set-local $key [$config @text]
+    puts [color good OK]
+    return
 }
 
-proc ::fx::report::template-set-colors {config} {
+proc ::fx::report::template-reset {config} {
+    fossil show-repository-location
+
+    switch -exact -- [$config @part] {
+	sql {
+	    set key  ticket-report-template
+	    set head "Resetting report template ... "
+	}
+	color {
+	    set key  ticket-key-template
+	    set head "Resetting color key template ... "
+	}
+    }
+
+    puts -nonewline $head
+    config unset-local $key
+    puts [color good OK]
+    return
+}
+
+proc ::fx::report::template-show {config} {
+    switch -exact -- [$config @part] {
+	sql {
+	    set text [GetSqlTemplate]
+	    set head "Show report template ... "
+	}
+	color {
+	    set text [GetColorTemplate]
+	    set head "Show color key template ... "
+	}
+    }
+
+    if {[$config @json]} {
+	puts [json::write string $text]
+
+    } elseif {[$config @raw]} {
+	puts $text
+
+    } else {
+	fossil show-repository-location
+	puts $head
+	[table t Value {
+	    $t add $text
+	}] show
+    }
+
+    return
+}
+
+# # ## ### ##### ######## ############# ######################
+
+proc ::fx::report::Write {chan parts owner title colors sql} {
+    puts $chan [list @@ -------------------------]
+    puts $chan [list @title $title]
+    puts $chan [list @owner $owner]
+
+    if {($parts in {all color}) && ($colors ne {})} {
+	puts $chan @colors
+	puts $chan $colors
+	puts $chan @/colors
+	puts $chan {}
+    }
+    if {($parts in {all sql}) && ($sqlcode ne {})} {
+	puts $chan @sql
+	puts $chan $sqlcode
+	puts $chan @/sql
+	puts $chan {}
+    }
+    return
+}
+
+proc ::fx::report::Read {chan} {
+    set state cmd
+    set definitions {}
+    array set current {}
+
+    while {[gets $chan line] >= 0} {
+	switch -exact -- $state {
+	    cmd {
+		switch -glob -- [string trim $line] {
+		    {@@*} continue
+		    {@title *} {
+			SaveCurrent
+			set current(title) [string trim [string range $line 7 end]]
+		    }
+		    {@owner *} {
+			set current(owner) [string trim [string range $line 7 end]]
+		    }
+		    {@colors} {
+			set state colors
+		    }
+		    {@sql} {
+			set state sql
+		    }
+		    * {
+			# TODO ERROR
+		    }
+		}
+	    }
+	    colors {
+		# Wait for any @ command, and record everything else as the color key lines.
+		# @title also triggers starting of the next report
+
+		switch -glob -- [string trim $line] {
+		    {@@*} -
+		    {@/sqlcode} {
+			# TODO ERROR
+		    }
+		    {@/colors} {
+			set state cmd
+		    }
+		    {@title *} {
+			SaveCurrent
+			set current(title) [string trim [string range $line 7 end]]
+		    }
+		    {@owner *} {
+			set current(owner) [string trim [string range $line 7 end]]
+			set state cmd
+		    }
+		    {@colors*} {
+			# Reset definition
+			unset current(colors)
+		    }
+		    {@sql*} {
+			set state sql
+		    }
+		    * {
+			append current(colors) $line\n
+		    }
+		}
+	    }
+	    sql {
+		# Wait for any @ command, and record everything else as the report lines.
+		# @title also triggers starting of the next report
+
+		switch -glob -- [string trim $line] {
+		    {@@*} -
+		    {@/colors} {
+			# TODO ERROR
+		    }
+		    {@/sql} {
+			set state cmd
+		    }
+		    {@title *} {
+			SaveCurrent
+			set current(title) [string trim [string range $line 7 end]]
+		    }
+		    {@owner *} {
+			set current(owner) [string trim [string range $line 7 end]]
+			set state cmd
+		    }
+		    {@colors} {
+			set state colors
+		    }
+		    {@sql} {
+			# Reset definition
+			unset current(sql)
+		    }
+		    * {
+			append current(sql) $line\n
+		    }
+		}
+	    }
+	}
+    }
+
+    SaveCurrent
+    return $definitions
+}
+
+proc ::fx::report::SaveCurrent {} {
+    upvar 1 current current definitions definitions
+    if {![array size current]} return
+
+    if {![info exists current(title)]} {
+	# Ignore unnamed definition
+	puts [color bad "Ignoring unnamed definition"
+	return
+    }
+    if {![info exists current(colors)] &&
+	 [info exists current(sql)]} {
+	# Ignore empty definition
+	puts [color warning "Ignoring empty definition $current(title)"]
+	return
+    }
+
+    lappend definitions [array get current]
+    array unset current *
+    return
+}
+
+proc ::fx::report::Import {chan mode} {
+    set defs [Read $chan]
+    close $chan
+
+    # Process definitions as per mode.
+    # Be verbose too.
+
+
+}
+# # ## ### ##### ######## ############# ######################
+
+proc ::fx::report::Get {rn} {
+    return [fossil repository eval {
+	SELECT owner, title, datetime(mtime,'unixepoch'), cols, sqlcode
+	FROM reportfmt
+	WHERE rn = :rn
+    }]
+}
+
+# Default defaults copied out of the fossil repository web UI (admin tickets).
+# Not available through sql operations.
+# Can be out of sync with the actual fossil default templates.
+
+proc ::fx::report::GetColorTemplate {} {
+    return [GetTemplate ticket-key-template {
+	#ffffff Key:
+	#f2dcdc Active
+	#e8e8e8 Review
+	#cfe8bd Fixed
+	#bde5d6 Tested
+	#cacae5 Deferred
+	#c8c8c8 Closed
+    }]
+}
+
+proc ::fx::report::GetSqlTemplate {} {
+    return [GetTemplate ticket-report-template {
+	SELECT
+	  CASE WHEN status IN ('Open','Verified') THEN '#f2dcdc'
+	       WHEN status='Review' THEN '#e8e8e8'
+	       WHEN status='Fixed' THEN '#cfe8bd'
+	       WHEN status='Tested' THEN '#bde5d6'
+	       WHEN status='Deferred' THEN '#cacae5'
+	       ELSE '#c8c8c8' END AS 'bgcolor',
+	  substr(tkt_uuid,1,10) AS '#',
+	  datetime(tkt_mtime) AS 'mtime',
+	  type,
+	  status,
+	  subsystem,
+	  title,
+	  comment AS '_comments'
+	FROM ticket
+    }]
+}
+
+proc ::fx::report::GetTemplate {key default} {
+    set map [list \n\t \n "\n    " {}]
+    return [string trimleft \
+		[string map [list \r\n \n \r \n] \
+		     [config get-with-default $key \
+			  [string map $map $default]]]]
 }
 
 # # ## ### ##### ######## ############# ######################

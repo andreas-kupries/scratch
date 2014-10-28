@@ -132,6 +132,12 @@ proc ::fx::sequence {args} {
     } $args
 }
 
+proc ::fx::touch {attr value} {
+    lambda {attr value p args} {
+	$p config $attr set $value
+    } $attr $value
+}
+
 proc ::fx::exclude {locked} {
     # Jump into the context of the parameter instance currently
     # getting configured. At the time the spec is executed things
@@ -265,6 +271,33 @@ cmdr create fx::fx [file tail $::argv0] {
 	option extend {
 	    Extend the current tables.
 	} { presence }
+    }
+
+    common .imode {
+	option replace {
+	    Replace all existing records with the imported records.
+	} { presence
+	    when-set [fx::touch @import-mode replace]
+	}
+	option overwrite {
+	    Add all imported records not in conflict with existing records.
+	    Keep all existing records not in conflict with imported records.
+	    Replace all existing records in conflict with imported records with the new ones.
+	} { presence
+	    when-set  [fx::touch @import-mode overwrite]
+	}
+	option extend {
+	    Add all imported records not in conflict with existing records.
+	    Keep all existing records.
+	    Imported records in conflict with existing records are ignored.
+	} { presence
+	    when-set [fx::touch @import-mode extend]
+	}
+	state import-mode {
+	    Container for the chosen import mode.
+	} {
+	    default replace
+	}
     }
 
     common .uuid {
@@ -715,7 +748,7 @@ cmdr create fx::fx [file tail $::argv0] {
 
 	common .spec {
 	    input spec {
-		Report specification.
+		Report specification (SQL select statement).
 		Defaults to reading it from stdin.
 	    } {
 		optional
@@ -735,11 +768,51 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	}
 
+	common .text {
+	    input colors {
+		Text to set
+		Defaults to reading it from stdin.
+	    } {
+		optional
+		validate str
+		generate [lambda p { read stdin }]
+	    }
+	}
+
 	common .only {
 	    option only {
 		Restrict the operation to a part of the report, i.e.
 		either specification (sql) or color key (color).
 	    } { validate [fx::vt report-part] }
+	}
+
+	common .part {
+	    input part {
+		Choose the part of the template to work with, i.e.
+		either specification (sql) or color key (color).
+	    } { validate [fx::vt report-part] }
+	}
+
+	common .jr {
+	    option json {
+		Print the data formatted as JSON.
+		Cannot be used together with --raw
+	    } { presence ; when-set [fx::exclude raw] }
+	    option raw {
+		Print the data in raw form.
+		Cannot be used together with --json
+	    } { presence ; when-set [fx::exclude json] }
+	}
+
+	common .owner {
+	    option owner {
+		Specify the owner of the report.
+		Defaults to the unix user running the command.
+	    } {
+		alias o
+		validate str
+		generate [lambda p { set ::tcl_platform(user) }]
+	    }
 	}
 
 	# execute a report ... proper matrix output, json output, nested tcl
@@ -761,17 +834,6 @@ cmdr create fx::fx [file tail $::argv0] {
 	    } { presence ; when-set [fx::exclude json] }
 	} [fx::call report listing]
 	default
-
-	common .owner {
-	    option owner {
-		Specify the owner of the report.
-		Defaults to the unix user running the command.
-	    } {
-		alias o
-		validate str
-		generate [lambda p { set ::tcl_platform(user) }]
-	    }
-	}
 
 	private add {
 	    section Reporting
@@ -838,15 +900,7 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 
 	    use .only
-	    option json {
-		Print the data formatted as JSON array.
-		Cannot be used together with --raw
-	    } { presence ; when-set [fx::exclude raw] }
-	    option raw {
-		Print the raw data.
-		Cannot be used together with --json
-	    } { presence ; when-set [fx::exclude json] }
-
+	    use .jr
 	    input id {
 		Id or name of the report to show.
 	    } {
@@ -961,6 +1015,7 @@ cmdr create fx::fx [file tail $::argv0] {
 		Execute the specified report definition and print the results to stdout.
 		Without a specification read the definition from stdin for a temporary report.
 	    }
+	    use .jr
 	    input id {
 		Id or name of the report to run.
 	    } {
@@ -969,21 +1024,39 @@ cmdr create fx::fx [file tail $::argv0] {
 	    }
 	} [fx::call report run]
 
-	private template-colors {
-	    section Reporting
+	officer template {
 	    description {
-		Set the global color key template.
+		Management of the templates for color keys and report sql code.
 	    }
-	    use .colorkey
-	} [fx::call report template-set-colors]
 
-	private template-spec {
-	    section Reporting
-	    description {
-		Set the global sql template
-	    }
-	    use .spec
-	} [fx::call report template-set-sql]
+	    private set {
+		section Reporting
+		description {
+		    Set the template for either color keys or report sql code.
+		}
+		use .jr
+		use .part
+		use .text
+	    } [fx::call report template-set]
+
+	    private reset {
+		section Reporting
+		description {
+		    Reset the template for either color keys or report sql code to the
+		    built-in defaults.
+		}
+		use .part
+	    } [fx::call report template-reset]
+
+	    private show {
+		section Reporting
+		description {
+		    Show a template, either color keys, or report sql code.
+		}
+		use .jr
+		use .part
+	    } [fx::call report template-show]
+	}
     }
     alias reports = report list
 
