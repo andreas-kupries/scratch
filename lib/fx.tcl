@@ -976,6 +976,17 @@ cmdr create fx::fx [file tail $::argv0] {
 	    description {
 		Import report definitions from a file.
 	    }
+	    option mode {
+		Import mode. How to handle conflicts between existing and imported records.
+
+		replace   = Drop all existing reports, take all imported ones.
+		extend    = Take all imported reports not in conflict with existing ones.
+		overwrite = Take all imported reports, keep existing ones not in conflict.
+
+		The default is 'replace'.
+	    } {
+		validate [fx::vt import-mode]
+	    }
 	    use .import
 	} [fx::call report import]
 

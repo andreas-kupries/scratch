@@ -18,6 +18,7 @@ package require sha1 2
 package require cmdr::color
 package require debug
 package require debug::caller
+package require dictutil
 #package require interp
 #package require linenoise
 #package require textutil::adjust
@@ -66,33 +67,7 @@ proc ::fx::report::add {config} {
 
     puts -nonewline "Add new report [color name $title] ... "
 
-    # TODO: Normalization and validation of the sql-code
-    # TODO: Use procedure, re-usable in import, set-sql, edit, etc.
-    #
-    # Trial compilation:
-    # - must be read-only (only SELECT allowed)
-    # - must not access forbidden tables.
-    # -> authorizer
-    # - deny recursive
-    # Strip/cleanup white-space.
-
-    # -> f r authorizer cmd - set
-    # -> f r authorizer {}  - unset
-    # cmd (op .1 .2 db trigger) -> SQLITE_{OK,IGNORE,DENY}
-    # op = SQLITE_{SELECT,FUNCTION,READ,RECURSIVE,...}
-    #              ok     ok       table,deny,    deny
-    # table => .1 = table name, allowed:
-    #   fx_*, ticket ticketchng blob filename mlink plink
-    #   event tag tagxref
-
-    set now [clock seconds]
-    fossil repository eval {
-	INSERT
-	INTO reportfmt
-	VALUES (NULL,:owner,:title,:now,'',:spec)
-    }
-
-    # f r last_insert_rowid => print number.
+    Add $title $owner $spec {}
 
     puts [color good OK]
     return
@@ -105,6 +80,8 @@ proc ::fx::report::delete {config} {
     set rn [$config @id]
 
     puts -nonewline "Delete report [color name $rn] ... "
+
+    # drop by report id (we also have by title, see import)
     fossil repository eval {
 	DELETE
 	FROM reportfmt
@@ -165,9 +142,10 @@ proc ::fx::report::set-sql {config} {
     set spec [$config @spec]
     set now  [clock seconds]
 
-    # TODO : Validate new spec, see 'add'.
-
     puts -nonewline "Redefine report [color name $rn] definition ... "
+
+    # TODO : Validate new spec, see 'Add'.
+
     fossil repository eval {
 	UPDATE reportfmt
 	SET sqlcode = :spec,
@@ -187,6 +165,7 @@ proc ::fx::report::set-colors {config} {
     set now    [clock seconds]
 
     puts -nonewline "Redefine report [color name $rn] colors ... "
+
     fossil repository eval {
 	UPDATE reportfmt
 	SET cols  = :colors,
@@ -405,18 +384,38 @@ proc ::fx::report::edit {config} {
     # ... Block import of multiple reports ?
 
     set parts [$config @only]
-    set rn    [$config @id]
-    # TODO: import mode...
 
-    lassign [Get $rn] owner title _m colors sqlcode
+    if {[$config @id set?]} {
+	# Get report
+	set rn [$config @id]
+	lassign [Get $rn] owner title _m colors sqlcode
+    } else {
+	# No report, use the templates instead.
+	set owner   $tcl_platform(user)
+	set title   Untitled
+	set colors  [GetColorTemplate]
+	set sqlcode [GetSqlTemplate]
+    }
 
+    # Export it
     set tmp [fileutil::tempfile fx_redit_]
     set chan [open $tmp w]
     Write $chan $parts
     close $chan
 
-    # TODO exec $env(EDITOR) $tmp / default: vi?
+    # Choose editor application
+    if {[info exists env(VISUAL)]} {
+	set cmd $env(VISUAL)
+    } elseif {[info exists env(EDITOR)]} {
+	set cmd $env(EDITOR)
+    } else {
+	set cmd vi
+    }
 
+    # Run editor
+    exec 2>@ stderr >@ stdout <@ stdin {*}$cmd $tmp
+
+    # And import the results
     Import [open $tmp r] overwrite
 
     file delete $tmp
@@ -650,15 +649,106 @@ proc ::fx::report::Import {chan mode} {
     # Process definitions as per mode.
     # Be verbose too.
 
+    if {$mode eq "replace"} {
+	puts -nonewline [color warning "Import replaces all existing reports ..."]
+	# Inlined delete of all reports
+	fossil repository eval {
+	    DELETE FROM reportfmt
+	}
+	puts [color good Done]
+    }
 
+    foreach def $defs {
+	# def = dict (title, owner, colors, sql)
+	# title       will be set.
+	# owner       may be set.
+	# colors, sql too, except one will be set.
+
+	set title  [dict get  $def title]
+	set owner  [dict get' $def owner  $tcl_platform(user)]
+	set sql    [dict get' $def sql    {}]
+	set colors [dict get' $def colors {}]
+
+	puts -nonewline "  Importing [color name $title] ... "
+	flush stdout
+
+	set known [Has $title]
+	if {($mode in {overwrite replace}) || !$known} {
+	    try {
+		fossil repository transaction {
+		    if {$known} { DropByTitle $title }
+		    Add $title $owner $sql $colors
+		}
+	    } on error {e o} {
+		puts [color error $e]
+	    } on ok {e o} {
+		set ok OK
+		if {$mode eq "overwrite"} { append ok ", replaced known" }
+		puts [color good $ok]
+	    }
+	} else {
+	    # extend, known --> ignore
+	    puts [color warning "Ignored, already known"]
+	}
+    }
+    return
 }
 # # ## ### ##### ######## ############# ######################
+
+proc ::fx::report::Add {title owner sql colors} {
+
+    # TODO: Normalization and validation of the sql-code
+    # TODO: Use procedure, re-usable in import, set-sql, edit, etc.
+    #
+    # Trial compilation:
+    # - must be read-only (only SELECT allowed)
+    # - must not access forbidden tables.
+    # -> authorizer
+    # - deny recursive
+    # Strip/cleanup white-space.
+
+    # -> f r authorizer cmd - set
+    # -> f r authorizer {}  - unset
+    # cmd (op .1 .2 db trigger) -> SQLITE_{OK,IGNORE,DENY}
+    # op = SQLITE_{SELECT,FUNCTION,READ,RECURSIVE,...}
+    #              ok     ok       table,deny,    deny
+    # table => .1 = table name, allowed:
+    #   fx_*, ticket ticketchng blob filename mlink plink
+    #   event tag tagxref
+
+    set now [clock seconds]
+    fossil repository eval {
+	INSERT
+	INTO reportfmt
+	VALUES (NULL,:owner,:title,:now,:colors,:spec)
+    }
+
+    # f r last_insert_rowid => print number.
+
+    return
+}
 
 proc ::fx::report::Get {rn} {
     return [fossil repository eval {
 	SELECT owner, title, datetime(mtime,'unixepoch'), cols, sqlcode
 	FROM reportfmt
 	WHERE rn = :rn
+    }]
+}
+
+proc ::fx::report::Has {title} {
+    return [fossil repository eval {
+	SELECT COUNT(*)
+	FROM reportfmt
+	WHERE title = :title
+    }]
+}
+
+proc ::fx::report::DropByTitle {title} {
+    return [fossil repository eval {
+	DELETE
+	FROM reportfmt
+	WHERE title = :title
     }]
 }
 
