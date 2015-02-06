@@ -85,6 +85,7 @@ proc ::fx::mailgen::for-error {stacktrace} {
     Body {} {}
     + Context
     +T "" [join $context \n]
+    =T
     + StackTrace
     +T "" $stacktrace
     =T
