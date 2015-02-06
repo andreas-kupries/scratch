@@ -90,13 +90,19 @@ proc ::fx::mail-error {e} {
 	return
     }
 
+    package require fx::fossil
     package require fx::mailer
     package require fx::mailgen
     set config [::fx mailer get-config]
     set admin  [lindex [dict get $config -header] end]
 
-    ::fx mailer send $config $admin \
-	[::fx mailgen for-error $e] on
+    ::fx mailgen context-push "R:  [::fx::fossil repository-location]"
+    try {
+	::fx mailer send $config $admin \
+	    [::fx mailgen for-error $e] on
+    } finally {
+	::fx mailgen context-pop
+    }
     return
 }
 
