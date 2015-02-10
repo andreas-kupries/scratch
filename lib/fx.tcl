@@ -1815,6 +1815,20 @@ cmdr create fx::fx [file tail $::argv0] {
 	    use .repository
 	} [fx::call fossil test-last-uuid]
 	alias tip = last-uuid
+
+	private schema {
+	    description {
+		Determine the aux-schema of the repository.
+	    }
+	    use .repository
+	} [fx::call fossil test-schema]
+
+	private mlink {
+	    description {
+		Determine the state of the mlink table in the repository.
+	    }
+	    use .repository
+	} [fx::call fossil test-mlink]
     }
 
     # # ## ### ##### ######## ############# ######################

@@ -35,13 +35,14 @@ namespace eval ::fx::fossil {
     namespace export \
 	c_show_repository c_set_repository c_reset_repository \
 	c_default_repository test-tags test-branch test-last-uuid \
-	branch-of changeset date-of last-uuid reveal user-info \
-	users user-config get-manifest fx-tables fx-maps \
-	fx-map-keys fx-map-get fx-enums fx-enum-items ticket-title \
-	ticket-fields global global-location show-global-location \
-	repository repository-location show-repository-location \
-	set-repository-location repository-find repository-open \
-	global-has has empty global-empty exchange
+	test-schema test-mlink branch-of changeset date-of last-uuid \
+	reveal user-info users user-config get-manifest fx-tables \
+	fx-maps fx-map-keys fx-map-get fx-enums fx-enum-items \
+	ticket-title ticket-fields global global-location \
+	show-global-location repository repository-location \
+	show-repository-location set-repository-location \
+	repository-find repository-open global-has has empty \
+	global-empty exchange schema has-ext-mlink
 	
     namespace ensemble create
 
@@ -100,6 +101,22 @@ proc ::fx::fossil::test-last-uuid {config} {
     debug.fx/fossil {}
     show-repository-location
     puts [last-uuid]
+    return
+}
+
+proc ::fx::fossil::test-schema {config} {
+    debug.fx/fossil {}
+    show-repository-location
+    puts [schema]
+    return
+}
+
+proc ::fx::fossil::test-mlink {config} {
+    debug.fx/fossil {}
+    show-repository-location
+    puts [expr {[has-ext-mlink]
+		? "Extended mlink"
+		: "Basic mlink"}]
     return
 }
 
@@ -668,20 +685,47 @@ proc ::fx::fossil::last-uuid {} {
 proc ::fx::fossil::changeset {uuid} {
     debug.fx/fossil {}
     set r {}
-    repository eval {
-        SELECT filename.name AS thepath,
-               CASE WHEN nullif(mlink.pid,0) is null THEN 'added'
-                    WHEN nullif(mlink.fid,0) is null THEN 'deleted'
-                    ELSE                                  'edited'
-               END AS theaction
-        FROM   mlink, filename, blob
-        WHERE  mlink.mid  = blob.rid
-	AND    blob.uuid = :uuid
-        AND    mlink.fnid = filename.fnid
-        ORDER BY filename.name
-    } {
-	dict lappend r $theaction $thepath
+
+    if {[has-ext-mlink]} {
+	# An extended mlink table (having the "isaux" column) records
+	# not just the changed files from the primary parent, but also
+	# from any auxiliary parents (i.e. merged commits). We have to
+	# exclude these records to get the proper change-set.
+
+	repository eval {
+	    SELECT filename.name AS thepath,
+	    CASE WHEN nullif(mlink.pid,0) is null THEN 'added'
+	    WHEN nullif(mlink.fid,0) is null THEN 'deleted'
+	    ELSE                                  'edited'
+	    END AS theaction
+	    FROM   mlink, filename, blob
+	    WHERE  mlink.mid  = blob.rid
+	    AND    blob.uuid = :uuid
+	    AND    mlink.fnid = filename.fnid
+	    AND    NOT mlink.isaux
+	    ORDER BY filename.name
+	} {
+	    dict lappend r $theaction $thepath
+	}
+    } else {
+	# Regular mlink table, no extended data. Nothing to exclude.
+
+	repository eval {
+	    SELECT filename.name AS thepath,
+	    CASE WHEN nullif(mlink.pid,0) is null THEN 'added'
+	    WHEN nullif(mlink.fid,0) is null THEN 'deleted'
+	    ELSE                                  'edited'
+	    END AS theaction
+	    FROM   mlink, filename, blob
+	    WHERE  mlink.mid  = blob.rid
+	    AND    blob.uuid = :uuid
+	    AND    mlink.fnid = filename.fnid
+	    ORDER BY filename.name
+	} {
+	    dict lappend r $theaction $thepath
+	}
     }
+
     return $r
 }
 
@@ -725,6 +769,26 @@ proc ::fx::fossil::users {} {
 	SELECT login
 	FROM user
     }]
+}
+
+proc ::fx::fossil::schema {} {
+    debug.fx/fossil {}
+    return [repository one {
+	SELECT value
+	FROM   config
+	WHERE name = 'aux-schema'
+    }]
+}
+
+proc ::fx::fossil::has-ext-mlink {} {
+    set result [repository one {
+	SELECT 1
+	FROM   sqlite_master
+	WHERE  sql LIKE '%isaux%'
+	AND    name = 'mlink'
+    }]
+    if {$result eq {}} { set result 0 }
+    return $result
 }
 
 # # ## ### ##### ######## ############# ######################
