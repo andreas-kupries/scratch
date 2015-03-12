@@ -750,11 +750,11 @@ cmdr create fx::fx [file tail $::argv0] {
 	    option json {
 		Print the data formatted as JSON array.
 		Cannot be used together with --raw
-	    } { presence ; when-set [exclude raw] }
+	    } { presence ; when-set [fx::exclude raw] }
 	    option raw {
 		Print the raw names.
 		Cannot be used together with --json
-	    } { presence ; when-set [exclude json] }
+	    } { presence ; when-set [fx::exclude json] }
 
 	    # options: --json, --raw
 	} [fx::call report list]
