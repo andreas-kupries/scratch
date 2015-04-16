@@ -440,6 +440,13 @@ cmdr create fx::fx [file tail $::argv0] {
 	puts "[file tail $::argv0] [package present fx]"
     }]
 
+    private contacts {
+	description {
+	    Print all email addresses found in the repository (Tickets).
+	}
+	use .repository
+    } [fx::call contacts get]
+
     private save {
 	description {
 	    Save all fx-managed state of the repository.

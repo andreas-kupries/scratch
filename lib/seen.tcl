@@ -31,7 +31,7 @@ namespace eval ::fx::seen {
 	mark-notified mark-notified-all mark-pending mark-pending-all \
 	set-watched-fields get-watched-fields \
 	set-progress get-field get-field-all \
-	regenerate-series
+	regenerate-series num forall
     namespace ensemble create
 
     namespace import ::cmdr::color
@@ -70,6 +70,15 @@ proc ::fx::seen::get-event {uuid} {
     return
 }
 
+proc ::fx::seen::num {} {
+    debug.fx/seen {}
+    Init
+    return [fossil repository onecolumn {
+	    SELECT count(*)
+	    FROM   event
+    }]
+}
+
 proc ::fx::seen::num-pending {} {
     debug.fx/seen {}
     Init
@@ -80,6 +89,35 @@ proc ::fx::seen::num-pending {} {
 				      FROM fx_aku_watch_seen)
 	    AND   event.objid = blob.rid
     }]
+}
+
+proc ::fx::seen::forall {tv iv uv cv script} {
+    debug.fx/seen {}
+    Init
+    FillSeries
+
+    upvar 1 $tv type $iv id $uv uuid $cv comment
+
+    fossil repository transaction {
+	fossil repository eval {
+	    SELECT event.type                               AS type
+	    ,      event.objid                              AS id
+	    ,      blob.uuid                                AS uuid
+	    ,      coalesce (event.ecomment, event.comment) AS comment
+	    FROM   event
+	    ,      blob
+	    WHERE  event.objid = blob.rid
+	    ORDER BY event.objid
+	} {
+	    uplevel 1 $script
+	    # TODO? handle break, continue
+	}
+    }
+    # NOTE: We will be shelling out to fossil to get the artifact
+    # contents. This way we avoid having to implement the entire
+    # decompression (delta, inflate) ourselves. A 'libfossil' with a
+    # proper C API would make this easier.
+    return
 }
 
 proc ::fx::seen::forall-pending {tv iv uv cv script} {
