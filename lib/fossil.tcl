@@ -675,7 +675,7 @@ proc ::fx::fossil::last-uuid {} {
 	FROM     blob  B,
 	         event E
 	WHERE    B.rid = E.objid
-	ORDER BY E.objid DESC
+	ORDER BY E.mtime DESC
 	LIMIT 1
     }]
     debug.fx/fossil {==> $uuid}
